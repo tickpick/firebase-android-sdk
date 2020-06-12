@@ -34,6 +34,9 @@ import com.google.firebase.remoteconfig.internal.ConfigGetParameterHandler;
 import com.google.firebase.remoteconfig.internal.ConfigMetadataClient;
 import com.google.firebase.remoteconfig.internal.ConfigStorageClient;
 import com.google.firebase.remoteconfig.internal.LegacyConfigsHandler;
+import com.google.firebase.remoteconfig.internal.PerformanceTraceClient;
+import com.google.firebase.remoteconfig.internal.PerformanceTracer;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -164,22 +167,22 @@ public class RemoteConfigComponent {
         defaultsCacheClient,
         getFetchHandler(namespace, fetchedCacheClient, metadataClient),
         getGetHandler(activatedCacheClient, defaultsCacheClient),
-        metadataClient);
+        metadataClient, PerformanceTraceClient.getInstance());
   }
 
   @VisibleForTesting
   synchronized FirebaseRemoteConfig get(
-      FirebaseApp firebaseApp,
-      String namespace,
-      FirebaseInstanceId firebaseInstanceId,
-      FirebaseABTesting firebaseAbt,
-      Executor executor,
-      ConfigCacheClient fetchedClient,
-      ConfigCacheClient activatedClient,
-      ConfigCacheClient defaultsClient,
-      ConfigFetchHandler fetchHandler,
-      ConfigGetParameterHandler getHandler,
-      ConfigMetadataClient metadataClient) {
+          FirebaseApp firebaseApp,
+          String namespace,
+          FirebaseInstanceId firebaseInstanceId,
+          FirebaseABTesting firebaseAbt,
+          Executor executor,
+          ConfigCacheClient fetchedClient,
+          ConfigCacheClient activatedClient,
+          ConfigCacheClient defaultsClient,
+          ConfigFetchHandler fetchHandler,
+          ConfigGetParameterHandler getHandler,
+          ConfigMetadataClient metadataClient, PerformanceTracer performanceTracer) {
     if (!frcNamespaceInstances.containsKey(namespace)) {
       FirebaseRemoteConfig in =
           new FirebaseRemoteConfig(
@@ -193,7 +196,8 @@ public class RemoteConfigComponent {
               defaultsClient,
               fetchHandler,
               getHandler,
-              metadataClient);
+              metadataClient,
+              performanceTracer);
       in.startLoadingConfigsFromDisk();
       frcNamespaceInstances.put(namespace, in);
     }

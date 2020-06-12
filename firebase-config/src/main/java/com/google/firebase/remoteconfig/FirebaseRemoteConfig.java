@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 import androidx.annotation.XmlRes;
+
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseApp;
@@ -28,6 +29,7 @@ import com.google.firebase.abt.AbtException;
 import com.google.firebase.abt.FirebaseABTesting;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.perf.metrics.Trace;
 import com.google.firebase.remoteconfig.internal.ConfigCacheClient;
 import com.google.firebase.remoteconfig.internal.ConfigContainer;
 import com.google.firebase.remoteconfig.internal.ConfigFetchHandler;
@@ -35,6 +37,8 @@ import com.google.firebase.remoteconfig.internal.ConfigFetchHandler.FetchRespons
 import com.google.firebase.remoteconfig.internal.ConfigGetParameterHandler;
 import com.google.firebase.remoteconfig.internal.ConfigMetadataClient;
 import com.google.firebase.remoteconfig.internal.DefaultsXmlParser;
+import com.google.firebase.remoteconfig.internal.PerformanceTracer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,6 +61,7 @@ import org.json.JSONObject;
  * @author Miraziz Yusupov
  */
 public class FirebaseRemoteConfig {
+  private final PerformanceTracer performanceTracer;
   // -------------------------------------------------------------------------------
   // Firebase Android Components logic.
 
@@ -157,17 +162,17 @@ public class FirebaseRemoteConfig {
    * @hide
    */
   FirebaseRemoteConfig(
-      Context context,
-      FirebaseApp firebaseApp,
-      FirebaseInstanceId firebaseInstanceId,
-      @Nullable FirebaseABTesting firebaseAbt,
-      Executor executor,
-      ConfigCacheClient fetchedConfigsCache,
-      ConfigCacheClient activatedConfigsCache,
-      ConfigCacheClient defaultConfigsCache,
-      ConfigFetchHandler fetchHandler,
-      ConfigGetParameterHandler getHandler,
-      ConfigMetadataClient frcMetadata) {
+          Context context,
+          FirebaseApp firebaseApp,
+          FirebaseInstanceId firebaseInstanceId,
+          @Nullable FirebaseABTesting firebaseAbt,
+          Executor executor,
+          ConfigCacheClient fetchedConfigsCache,
+          ConfigCacheClient activatedConfigsCache,
+          ConfigCacheClient defaultConfigsCache,
+          ConfigFetchHandler fetchHandler,
+          ConfigGetParameterHandler getHandler,
+          ConfigMetadataClient frcMetadata, PerformanceTracer performanceTracer) {
     this.context = context;
     this.firebaseApp = firebaseApp;
     this.firebaseInstanceId = firebaseInstanceId;
@@ -179,6 +184,7 @@ public class FirebaseRemoteConfig {
     this.fetchHandler = fetchHandler;
     this.getHandler = getHandler;
     this.frcMetadata = frcMetadata;
+    this.performanceTracer = performanceTracer;
   }
 
   /**
@@ -264,8 +270,8 @@ public class FirebaseRemoteConfig {
    */
   @NonNull
   public Task<Boolean> activate() {
-    Task<ConfigContainer> fetchedConfigsTask = fetchedConfigsCache.get();
-    Task<ConfigContainer> activatedConfigsTask = activatedConfigsCache.get();
+    Task<ConfigContainer> fetchedConfigsTask = fetchedConfigsCache.get(trace);
+    Task<ConfigContainer> activatedConfigsTask = activatedConfigsCache.get(trace);
 
     return Tasks.whenAllComplete(fetchedConfigsTask, activatedConfigsTask)
         .continueWithTask(
@@ -310,10 +316,21 @@ public class FirebaseRemoteConfig {
    */
   @NonNull
   public Task<Void> fetch() {
-    Task<FetchResponse> fetchTask = fetchHandler.fetch();
+    Trace trace = performanceTracer.startTrace("remote_config_fetch_and_activate");
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
 
     // Convert Task type to Void.
-    return fetchTask.onSuccessTask((unusedFetchResponse) -> Tasks.forResult(null));
+    return fetchTask.addOnCompleteListener(task -> {
+      if(task.isSuccessful()) {
+          trace.putAttribute("success", "true");
+      } else {
+        trace.putAttribute("success", "false");
+        if (task.getException() != null){
+          trace.putAttribute("exception", task.getException().getClass().getSimpleName());
+        }
+      }
+      trace.stop();
+    }).onSuccessTask((unusedFetchResponse) -> Tasks.forResult(null));
   }
 
   /**
@@ -335,7 +352,7 @@ public class FirebaseRemoteConfig {
    */
   @NonNull
   public Task<Void> fetch(long minimumFetchIntervalInSeconds) {
-    Task<FetchResponse> fetchTask = fetchHandler.fetch(minimumFetchIntervalInSeconds);
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(minimumFetchIntervalInSeconds, performanceTracer);
 
     // Convert Task type to Void.
     return fetchTask.onSuccessTask((unusedFetchResponse) -> Tasks.forResult(null));
@@ -650,9 +667,9 @@ public class FirebaseRemoteConfig {
    * @hide
    */
   void startLoadingConfigsFromDisk() {
-    activatedConfigsCache.get();
-    defaultConfigsCache.get();
-    fetchedConfigsCache.get();
+    activatedConfigsCache.get(trace);
+    defaultConfigsCache.get(trace);
+    fetchedConfigsCache.get(trace);
   }
 
   /**

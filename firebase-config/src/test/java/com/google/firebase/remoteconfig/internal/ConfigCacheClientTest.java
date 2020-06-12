@@ -134,7 +134,7 @@ public class ConfigCacheClientTest {
     Preconditions.checkArgument(
         cacheClient.getCachedContainerTask().getResult().equals(configContainer));
 
-    ConfigContainer getContainer = Tasks.await(cacheClient.get());
+    ConfigContainer getContainer = Tasks.await(cacheClient.get(trace));
 
     verify(mockStorageClient, never()).read();
     assertThat(getContainer).isEqualTo(configContainer);
@@ -144,7 +144,7 @@ public class ConfigCacheClientTest {
   public void get_hasNoCachedValue_readsFileAndSetsCache() throws Exception {
     when(mockStorageClient.read()).thenReturn(configContainer);
 
-    ConfigContainer getContainer = Tasks.await(cacheClient.get());
+    ConfigContainer getContainer = Tasks.await(cacheClient.get(trace));
     assertThat(getContainer).isEqualTo(configContainer);
 
     assertThat(cacheClient.getCachedContainerTask().getResult()).isEqualTo(configContainer);
@@ -154,7 +154,7 @@ public class ConfigCacheClientTest {
   public void get_hasNoCachedValueAndFileReadFails_throwsIOException() throws Exception {
     when(mockStorageClient.read()).thenThrow(IO_EXCEPTION);
 
-    Task<ConfigContainer> getTask = cacheClient.get();
+    Task<ConfigContainer> getTask = cacheClient.get(trace);
     assertThrows(ExecutionException.class, () -> Tasks.await(getTask));
 
     assertThat(getTask.getException()).isInstanceOf(IOException.class);
@@ -163,13 +163,13 @@ public class ConfigCacheClientTest {
   @Test
   public void get_hasFailedCacheValue_readsFileAndSetsCache() throws Exception {
     when(mockStorageClient.read()).thenThrow(IO_EXCEPTION);
-    Task<ConfigContainer> getTask = cacheClient.get();
+    Task<ConfigContainer> getTask = cacheClient.get(trace);
     assertThrows(ExecutionException.class, () -> Tasks.await(getTask));
     Preconditions.checkArgument(getTask.getException() instanceof IOException);
 
     doReturn(configContainer).when(mockStorageClient).read();
 
-    ConfigContainer getContainer = Tasks.await(cacheClient.get());
+    ConfigContainer getContainer = Tasks.await(cacheClient.get(trace));
 
     assertThat(getContainer).isEqualTo(configContainer);
   }
@@ -181,7 +181,7 @@ public class ConfigCacheClientTest {
 
     List<Task<ConfigContainer>> getTasks = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
-      getTasks.add(Tasks.call(testingThreadPool, () -> Tasks.await(cacheClient.get())));
+      getTasks.add(Tasks.call(testingThreadPool, () -> Tasks.await(cacheClient.get(trace))));
     }
 
     for (Task<ConfigContainer> getTask : getTasks) {
@@ -193,12 +193,12 @@ public class ConfigCacheClientTest {
   @Test
   public void get_firstTwoFileReadsFail_readsFileAndSetsCacheThreeTimes() throws Exception {
     doThrow(IO_EXCEPTION).when(mockStorageClient).read();
-    assertThrows(ExecutionException.class, () -> Tasks.await(cacheClient.get()));
-    assertThrows(ExecutionException.class, () -> Tasks.await(cacheClient.get()));
+    assertThrows(ExecutionException.class, () -> Tasks.await(cacheClient.get(trace)));
+    assertThrows(ExecutionException.class, () -> Tasks.await(cacheClient.get(trace)));
 
     doReturn(configContainer).when(mockStorageClient).read();
     for (int getCallIndex = 0; getCallIndex < 5; getCallIndex++) {
-      assertThat(Tasks.await(cacheClient.get())).isEqualTo(configContainer);
+      assertThat(Tasks.await(cacheClient.get(trace))).isEqualTo(configContainer);
     }
 
     // Three file reads: 2 failures and 1 success.
@@ -240,7 +240,7 @@ public class ConfigCacheClientTest {
   public void getBlocking_hasFailedCacheValue_blocksOnFileReadAndReturnsFileContainer()
       throws Exception {
     when(mockStorageClient.read()).thenThrow(IO_EXCEPTION);
-    Task<ConfigContainer> getTask = cacheClient.get();
+    Task<ConfigContainer> getTask = cacheClient.get(trace);
     assertThrows(ExecutionException.class, () -> Tasks.await(getTask));
     Preconditions.checkArgument(getTask.getException() instanceof IOException);
 
@@ -317,20 +317,20 @@ public class ConfigCacheClientTest {
     verify(mockStorageClient).clear();
 
     assertThat(cacheClient.getCachedContainerTask().getResult()).isNull();
-    assertThat(Tasks.await(cacheClient.get())).isNull();
+    assertThat(Tasks.await(cacheClient.get(trace))).isNull();
   }
 
   @Test
   public void clear_hasOngoingGetCall_setsCacheContainerToNull() throws Exception {
     when(mockStorageClient.read()).thenReturn(configContainer);
-    Tasks.call(testingThreadPool, () -> Tasks.await(cacheClient.get()));
+    Tasks.call(testingThreadPool, () -> Tasks.await(cacheClient.get(trace)));
 
     cacheClient.clear();
 
     verify(mockStorageClient).clear();
 
     assertThat(cacheClient.getCachedContainerTask().getResult()).isNull();
-    assertThat(Tasks.await(cacheClient.get())).isNull();
+    assertThat(Tasks.await(cacheClient.get(trace))).isNull();
   }
 
   private void verifyFileWrites(ConfigContainer... containers) throws Exception {

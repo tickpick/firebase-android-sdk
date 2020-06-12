@@ -140,7 +140,7 @@ public class ConfigFetchHandlerTest {
      * Every fetch starts with a call to retrieve the cached fetch values. Return successfully in
      * the base case.
      */
-    when(mockFetchedCache.get()).thenReturn(Tasks.forResult(null));
+    when(mockFetchedCache.get(trace)).thenReturn(Tasks.forResult(null));
 
     // Assume there is no analytics SDK for most of the tests.
     fetchHandler = getNewFetchHandler(/*analyticsConnector=*/ null);
@@ -166,7 +166,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(secondFetchedContainer);
 
     assertWithMessage("Fetch() failed for first fetch!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsCalled();
@@ -177,7 +177,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(firstFetchedContainer);
 
     assertWithMessage("Fetch() does not include IID token.")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verify(mockBackendFetchApiClient)
@@ -198,7 +198,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(firstFetchedContainer);
 
     assertThrowsClientException(
-        fetchHandler.fetch(), "Failed to get Firebase Instance ID token for fetch.");
+        fetchHandler.fetch(trace, performanceTracer), "Failed to get Firebase Instance ID token for fetch.");
 
     verifyBackendIsNeverCalled();
   }
@@ -211,7 +211,7 @@ public class ConfigFetchHandlerTest {
     mockClock.advance(DEFAULT_CACHE_EXPIRATION_IN_MILLISECONDS - 1);
 
     assertWithMessage("Fetch() failed even though cache has not expired!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsNeverCalled();
@@ -226,7 +226,7 @@ public class ConfigFetchHandlerTest {
     mockClock.advance(DEFAULT_CACHE_EXPIRATION_IN_MILLISECONDS - 1);
 
     assertWithMessage("Fetch() failed even though cache has not expired!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsNeverCalled();
@@ -241,7 +241,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(secondFetchedContainer);
 
     assertWithMessage("Fetch() failed after cache expired!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsCalled();
@@ -256,7 +256,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(secondFetchedContainer);
 
     assertWithMessage("Fetch() failed after cache expired!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsCalled();
@@ -273,7 +273,7 @@ public class ConfigFetchHandlerTest {
 
     fetchCallToHttpClientReturnsConfigWithCurrentTime(secondFetchedContainer);
     assertWithMessage("Fetch() failed after cache expired!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsCalled();
@@ -290,7 +290,7 @@ public class ConfigFetchHandlerTest {
     mockClock.advance(SECONDS.toMillis(minimumFetchIntervalInSeconds) - 1);
 
     assertWithMessage("Fetch() failed even though cache has not expired!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsNeverCalled();
@@ -303,7 +303,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(secondFetchedContainer);
 
     assertWithMessage("Fetch() failed for first fetch!")
-        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours)).isSuccessful())
+        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours), performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsCalled();
@@ -318,7 +318,7 @@ public class ConfigFetchHandlerTest {
     mockClock.advance(HOURS.toMillis(cacheExpirationInHours) - 1);
 
     assertWithMessage("Fetch() failed even though cache has not expired!")
-        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours)).isSuccessful())
+        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours), performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsNeverCalled();
@@ -334,7 +334,7 @@ public class ConfigFetchHandlerTest {
     mockClock.advance(HOURS.toMillis(cacheExpirationInHours) - 1);
 
     assertWithMessage("Fetch() failed even though cache has not expired!")
-        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours)).isSuccessful())
+        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours), performanceTracer).isSuccessful())
         .isTrue();
     verifyBackendIsNeverCalled();
   }
@@ -349,7 +349,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(secondFetchedContainer);
 
     assertWithMessage("Fetch() failed after cache expired!")
-        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours)).isSuccessful())
+        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours), performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsCalled();
@@ -366,7 +366,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToHttpClientReturnsConfigWithCurrentTime(secondFetchedContainer);
 
     assertWithMessage("Fetch() failed after cache expired!")
-        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours)).isSuccessful())
+        .that(fetchHandler.fetch(HOURS.toSeconds(cacheExpirationInHours), performanceTracer).isSuccessful())
         .isTrue();
 
     verifyBackendIsCalled();
@@ -374,13 +374,13 @@ public class ConfigFetchHandlerTest {
 
   @Test
   public void fetch_gettingFetchCacheFails_doesNotThrowException() throws Exception {
-    when(mockFetchedCache.get())
+    when(mockFetchedCache.get(trace))
         .thenReturn(Tasks.forException(new IOException("Disk read failed.")));
 
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
 
     assertWithMessage("Fetch() failed when fetch cache could not be read!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
   }
 
@@ -390,7 +390,7 @@ public class ConfigFetchHandlerTest {
         .thenThrow(
             new FirebaseRemoteConfigClientException("Fetch failed due to an unexpected error."));
 
-    Task<FetchResponse> fetchTask = fetchHandler.fetch();
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
 
     assertThrowsClientException(fetchTask, "unexpected error");
   }
@@ -400,7 +400,7 @@ public class ConfigFetchHandlerTest {
     setBackendResponseToNoChange(new Date(mockClock.currentTimeMillis()));
 
     assertWithMessage("Fetch() failed after no changes were returned from backend!")
-        .that(fetchHandler.fetch().isSuccessful())
+        .that(fetchHandler.fetch(trace, performanceTracer).isSuccessful())
         .isTrue();
 
     verify(mockFetchedCache, never()).put(any());
@@ -412,7 +412,7 @@ public class ConfigFetchHandlerTest {
     setBackendResponseConfigsTo(firstFetchedContainer);
     when(mockFetchedCache.put(any())).thenReturn(Tasks.forException(expectedException));
 
-    Task<FetchResponse> fetchTask = fetchHandler.fetch();
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
 
     IOException actualException =
         assertThrows(IOException.class, () -> fetchTask.getResult(IOException.class));
@@ -423,7 +423,7 @@ public class ConfigFetchHandlerTest {
   public void fetch_HasNoErrors_everythingWorks() throws Exception {
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
 
-    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch().isSuccessful()).isTrue();
+    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch(trace, performanceTracer).isSuccessful()).isTrue();
 
     verify(mockFetchedCache).put(firstFetchedContainer);
   }
@@ -435,7 +435,7 @@ public class ConfigFetchHandlerTest {
     loadETags(requestETag, responseETag);
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
 
-    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch().isSuccessful()).isTrue();
+    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch(trace, performanceTracer).isSuccessful()).isTrue();
 
     verifyETags(requestETag, responseETag);
   }
@@ -446,7 +446,7 @@ public class ConfigFetchHandlerTest {
     loadETags(/*requestETag=*/ null, responseETag);
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
 
-    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch().isSuccessful()).isTrue();
+    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch(trace, performanceTracer).isSuccessful()).isTrue();
 
     verifyETags(/*requestETag=*/ null, responseETag);
   }
@@ -460,7 +460,7 @@ public class ConfigFetchHandlerTest {
     ArgumentCaptor<ConfigContainer> captor = ArgumentCaptor.forClass(ConfigContainer.class);
 
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(containerWithExperiments);
-    fetchHandler.fetch();
+    fetchHandler.fetch(trace, performanceTracer);
 
     verify(mockFetchedCache).put(captor.capture());
 
@@ -474,7 +474,7 @@ public class ConfigFetchHandlerTest {
     long backoffDurationInMillis = loadAndGetNextBackoffDuration(/*numFailedFetches=*/ 1);
 
     FirebaseRemoteConfigFetchThrottledException actualException =
-        getThrottledException(fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L));
+        getThrottledException(fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L, performanceTracer));
 
     assertThat(actualException.getThrottleEndTimeMillis())
         .isEqualTo(mockClock.currentTimeMillis() + backoffDurationInMillis);
@@ -488,7 +488,7 @@ public class ConfigFetchHandlerTest {
       long backoffDurationInMillis = loadAndGetNextBackoffDuration(numFetch);
 
       assertThrowsThrottledException(
-          fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L),
+          fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L, performanceTracer),
           mockClock.currentTimeMillis() + backoffDurationInMillis);
 
       // Wait long enough for throttling to clear.
@@ -506,7 +506,7 @@ public class ConfigFetchHandlerTest {
 
     fetchCallToHttpClientReturnsConfigWithCurrentTime(firstFetchedContainer);
 
-    Task<FetchResponse> fetchTask = fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L);
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L, performanceTracer);
 
     assertWithMessage("Fetch() failed!").that(fetchTask.isSuccessful()).isTrue();
 
@@ -529,7 +529,7 @@ public class ConfigFetchHandlerTest {
           .thenReturn(new Random().nextInt((int) backoffDurationInterval));
 
       FirebaseRemoteConfigFetchThrottledException actualException =
-          getThrottledException(fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L));
+          getThrottledException(fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L, performanceTracer));
 
       long actualBackoffDuration =
           actualException.getThrottleEndTimeMillis() - mockClock.currentTimeMillis();
@@ -550,7 +550,7 @@ public class ConfigFetchHandlerTest {
     fetchCallToBackendThrowsException(HTTP_UNAUTHORIZED);
 
     assertThrowsServerException(
-        fetchHandler.fetch(), HTTP_UNAUTHORIZED, "did not have the required credentials");
+        fetchHandler.fetch(trace, performanceTracer), HTTP_UNAUTHORIZED, "did not have the required credentials");
   }
 
   @Test
@@ -558,7 +558,7 @@ public class ConfigFetchHandlerTest {
       throws Exception {
     fetchCallToBackendThrowsException(HTTP_FORBIDDEN);
 
-    assertThrowsServerException(fetchHandler.fetch(), HTTP_FORBIDDEN, "is not authorized");
+    assertThrowsServerException(fetchHandler.fetch(trace, performanceTracer), HTTP_FORBIDDEN, "is not authorized");
   }
 
   @Test
@@ -566,7 +566,7 @@ public class ConfigFetchHandlerTest {
       throws Exception {
     fetchCallToBackendThrowsException(HTTP_BAD_GATEWAY);
 
-    Task<FetchResponse> fetchTask = fetchHandler.fetch();
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
 
     assertThrowsServerException(fetchTask, HTTP_BAD_GATEWAY, "unavailable");
   }
@@ -576,7 +576,7 @@ public class ConfigFetchHandlerTest {
       throws Exception {
     fetchCallToBackendThrowsException(HTTP_UNAVAILABLE);
 
-    Task<FetchResponse> fetchTask = fetchHandler.fetch();
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
 
     assertThrowsServerException(fetchTask, HTTP_UNAVAILABLE, "unavailable");
   }
@@ -586,7 +586,7 @@ public class ConfigFetchHandlerTest {
       throws Exception {
     fetchCallToBackendThrowsException(HTTP_GATEWAY_TIMEOUT);
 
-    Task<FetchResponse> fetchTask = fetchHandler.fetch();
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
 
     assertThrowsServerException(fetchTask, HTTP_GATEWAY_TIMEOUT, "unavailable");
   }
@@ -595,11 +595,11 @@ public class ConfigFetchHandlerTest {
   public void fetch_serverReturnsThrottleableErrorTwice_throwsThrottledException()
       throws Exception {
     fetchCallToBackendThrowsException(HTTP_UNAVAILABLE);
-    fetchHandler.fetch();
+    fetchHandler.fetch(trace, performanceTracer);
 
     fetchCallToBackendThrowsException(HTTP_UNAVAILABLE);
 
-    Task<FetchResponse> fetchTask = fetchHandler.fetch();
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
 
     assertThrowsThrottledException(fetchTask);
   }
@@ -609,14 +609,14 @@ public class ConfigFetchHandlerTest {
       throws Exception {
     fetchCallToBackendThrowsException(HTTP_INTERNAL_ERROR);
 
-    assertThrowsServerException(fetchHandler.fetch(), HTTP_INTERNAL_ERROR, "internal server error");
+    assertThrowsServerException(fetchHandler.fetch(trace, performanceTracer), HTTP_INTERNAL_ERROR, "internal server error");
   }
 
   @Test
   public void fetch_serverReturnsUnexpectedCode_throwsServerException() throws Exception {
     fetchCallToBackendThrowsException(HTTP_NOT_FOUND);
 
-    assertThrowsServerException(fetchHandler.fetch(), HTTP_NOT_FOUND, "unexpected error");
+    assertThrowsServerException(fetchHandler.fetch(trace, performanceTracer), HTTP_NOT_FOUND, "unexpected error");
   }
 
   @Test
@@ -632,7 +632,7 @@ public class ConfigFetchHandlerTest {
 
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
 
-    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch().isSuccessful()).isTrue();
+    assertWithMessage("Fetch() failed!").that(fetchHandler.fetch(trace, performanceTracer).isSuccessful()).isTrue();
 
     verifyBackendIsCalled(userProperties);
   }
@@ -641,7 +641,7 @@ public class ConfigFetchHandlerTest {
   public void fetch_firstAndOnlyFetchFails_metadataFailStatusAndNoFetchYetTime() throws Exception {
     fetchCallToBackendThrowsException(HTTP_NOT_FOUND);
 
-    fetchHandler.fetch();
+    fetchHandler.fetch(trace, performanceTracer);
 
     assertThat(metadataClient.getLastFetchStatus()).isEqualTo(LAST_FETCH_STATUS_FAILURE);
     assertThat(metadataClient.getLastSuccessfulFetchTime()).isEqualTo(LAST_FETCH_TIME_NO_FETCH_YET);
@@ -651,7 +651,7 @@ public class ConfigFetchHandlerTest {
   public void fetch_fetchSucceeds_metadataSuccessStatusAndFetchTimeUpdated() throws Exception {
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
 
-    fetchHandler.fetch();
+    fetchHandler.fetch(trace, performanceTracer);
 
     assertThat(metadataClient.getLastFetchStatus()).isEqualTo(LAST_FETCH_STATUS_SUCCESS);
     assertThat(metadataClient.getLastSuccessfulFetchTime())
@@ -662,11 +662,11 @@ public class ConfigFetchHandlerTest {
   public void fetch_firstFetchSucceedsSecondFetchFails_failStatusAndFirstFetchTime()
       throws Exception {
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
-    fetchHandler.fetch();
+    fetchHandler.fetch(trace, performanceTracer);
 
     fetchCallToBackendThrowsException(HTTP_NOT_FOUND);
 
-    fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0);
+    fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0, performanceTracer);
 
     assertThat(metadataClient.getLastFetchStatus()).isEqualTo(LAST_FETCH_STATUS_FAILURE);
     assertThat(metadataClient.getLastSuccessfulFetchTime())
@@ -676,11 +676,11 @@ public class ConfigFetchHandlerTest {
   @Test
   public void getInfo_twoFetchesSucceed_successStatusAndSecondFetchTime() throws Exception {
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
-    fetchHandler.fetch();
+    fetchHandler.fetch(trace, performanceTracer);
 
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(secondFetchedContainer);
 
-    fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0);
+    fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0, performanceTracer);
 
     assertThat(metadataClient.getLastFetchStatus()).isEqualTo(LAST_FETCH_STATUS_SUCCESS);
     assertThat(metadataClient.getLastSuccessfulFetchTime())
@@ -690,11 +690,11 @@ public class ConfigFetchHandlerTest {
   @Test
   public void getInfo_hitsThrottleLimit_throttledStatus() throws Exception {
     fetchCallToHttpClientUpdatesClockAndReturnsConfig(firstFetchedContainer);
-    fetchHandler.fetch();
+    fetchHandler.fetch(trace, performanceTracer);
 
     fetchCallToBackendThrowsException(HTTP_TOO_MANY_REQUESTS);
 
-    fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0);
+    fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0, performanceTracer);
 
     assertThat(metadataClient.getLastFetchStatus()).isEqualTo(LAST_FETCH_STATUS_THROTTLED);
     assertThat(metadataClient.getLastSuccessfulFetchTime())
@@ -809,7 +809,7 @@ public class ConfigFetchHandlerTest {
         loadAndGetNextBackoffDuration(
             /*numFailedFetches=*/ metadataClient.getBackoffMetadata().getNumFailedFetches() + 1);
 
-    assertThrowsThrottledException(fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L));
+    assertThrowsThrottledException(fetchHandler.fetch(/*minimumFetchIntervalInSeconds=*/ 0L, performanceTracer));
 
     // Wait long enough for throttling to clear.
     mockClock.advance(backoffDurationInMillis);
@@ -907,7 +907,7 @@ public class ConfigFetchHandlerTest {
   private void loadCacheAndClockWithConfig(
       ConfigCacheClient cacheClient, ConfigContainer container) {
     when(cacheClient.getBlocking()).thenReturn(container);
-    when(cacheClient.get()).thenReturn(Tasks.forResult(container));
+    when(cacheClient.get(trace)).thenReturn(Tasks.forResult(container));
     mockClock.setCurrentTime(container.getFetchTime().getTime());
     metadataClient.updateLastFetchAsSuccessfulAt(container.getFetchTime());
   }
@@ -921,7 +921,7 @@ public class ConfigFetchHandlerTest {
     loadCacheAndClockWithConfig(cacheClient, container);
     // During a successful activateFetched() call, the fetch cache is cleared.
     when(cacheClient.getBlocking()).thenReturn(container);
-    when(cacheClient.get()).thenReturn(Tasks.forResult(null));
+    when(cacheClient.get(trace)).thenReturn(Tasks.forResult(null));
   }
 
   private static FirebaseRemoteConfigFetchThrottledException getThrottledException(
