@@ -163,7 +163,6 @@ public class ConfigFetchHandler {
         .addOnCompleteListener(task -> {
           cacheReadTimer.stop();
           trace.putMetric("cache_read_elapsed_time", cacheReadTimer.getElapsedTimeNanos());
-          trace.putAttribute("success", Boolean.toString(task.isSuccessful()));
         })
         .continueWithTask(
             executor,
@@ -194,7 +193,7 @@ public class ConfigFetchHandler {
 
     Date backoffEndTime = getBackoffEndTimeInMillis(currentTime);
     if (backoffEndTime != null) {
-      trace.putAttribute("throttled_by_client", "yes");
+//      trace.putAttribute("throttled_by_client", "yes");
       // TODO(issues/260): Provide a way for users to check for throttled status so exceptions
       // aren't the only way for users to determine if they're throttled.
       fetchResponseTask =
@@ -203,7 +202,7 @@ public class ConfigFetchHandler {
                   createThrottledMessage(backoffEndTime.getTime() - currentTime.getTime()),
                   backoffEndTime.getTime()));
     } else {
-      trace.putAttribute("throttled_by_client", "no");
+//      trace.putAttribute("throttled_by_client", "no");
       Trace getIID = FirebasePerformance.startTrace("remote_config_get_iid");
       Task<InstanceIdResult> instanceIdTask = firebaseInstanceId.getInstanceId();
       fetchResponseTask =
@@ -329,21 +328,21 @@ public class ConfigFetchHandler {
       // If the execute method did not throw exceptions, then the server sent a successful response
       // and the client can stop backing off.
       frcMetadata.resetBackoff();
-      trace.putAttribute("backend_fetch", "success");
-      trace.putAttribute("throttled_by_service", "no");
+//      trace.putAttribute("backend_fetch", "success");
+//      trace.putAttribute("throttled_by_service", "no");
       trace.putAttribute("backend_status_code", Integer.toString(200));
       return response;
     } catch (FirebaseRemoteConfigServerException serverHttpError) {
-      trace.putAttribute("backend_fetch", "failure");
+//      trace.putAttribute("backend_fetch", "failure");
       trace.putAttribute("backend_status_code", Integer.toString(serverHttpError.getHttpStatusCode()));
       BackoffMetadata backoffMetadata =
           updateAndReturnBackoffMetadata(serverHttpError.getHttpStatusCode(), currentTime);
       if (shouldThrottle(backoffMetadata, serverHttpError.getHttpStatusCode())) {
-        trace.putAttribute("throttled_by_service", "yes");
+//        trace.putAttribute("throttled_by_service", "yes");
         throw new FirebaseRemoteConfigFetchThrottledException(
             backoffMetadata.getBackoffEndTime().getTime());
       }
-      trace.putAttribute("throttled_by_service", "no");
+//      trace.putAttribute("throttled_by_service", "no");
       // TODO(issues/264): Move the generic message logic to the ConfigFetchHttpClient.
       throw createExceptionWithGenericMessage(serverHttpError);
     }

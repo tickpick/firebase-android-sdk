@@ -94,6 +94,7 @@ dependencies {
     implementation ('com.google.firebase:firebase-perf:19.0.7') {
         exclude group: 'com.google.firebase', module: 'firebase-common'
         exclude group: 'com.google.firebase', module: 'firebase-components'
+        exclude group: 'com.google.firebase', module: 'firebase-config'
     }
 
     compileOnly 'com.google.code.findbugs:jsr305:3.0.2'

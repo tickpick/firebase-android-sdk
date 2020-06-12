@@ -37,6 +37,7 @@ import com.google.firebase.remoteconfig.internal.ConfigFetchHandler.FetchRespons
 import com.google.firebase.remoteconfig.internal.ConfigGetParameterHandler;
 import com.google.firebase.remoteconfig.internal.ConfigMetadataClient;
 import com.google.firebase.remoteconfig.internal.DefaultsXmlParser;
+import com.google.firebase.remoteconfig.internal.PerformanceTraceClient;
 import com.google.firebase.remoteconfig.internal.PerformanceTracer;
 
 import java.util.ArrayList;
@@ -50,6 +51,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static com.google.firebase.perf.FirebasePerformance.startTrace;
+
 /**
  * Entry point for the Firebase Remote Config (FRC) API.
  *
@@ -61,7 +64,6 @@ import org.json.JSONObject;
  * @author Miraziz Yusupov
  */
 public class FirebaseRemoteConfig {
-  private final PerformanceTracer performanceTracer;
   // -------------------------------------------------------------------------------
   // Firebase Android Components logic.
 
@@ -172,7 +174,7 @@ public class FirebaseRemoteConfig {
           ConfigCacheClient defaultConfigsCache,
           ConfigFetchHandler fetchHandler,
           ConfigGetParameterHandler getHandler,
-          ConfigMetadataClient frcMetadata, PerformanceTracer performanceTracer) {
+          ConfigMetadataClient frcMetadata) {
     this.context = context;
     this.firebaseApp = firebaseApp;
     this.firebaseInstanceId = firebaseInstanceId;
@@ -184,7 +186,6 @@ public class FirebaseRemoteConfig {
     this.fetchHandler = fetchHandler;
     this.getHandler = getHandler;
     this.frcMetadata = frcMetadata;
-    this.performanceTracer = performanceTracer;
   }
 
   /**
@@ -270,8 +271,8 @@ public class FirebaseRemoteConfig {
    */
   @NonNull
   public Task<Boolean> activate() {
-    Task<ConfigContainer> fetchedConfigsTask = fetchedConfigsCache.get(trace);
-    Task<ConfigContainer> activatedConfigsTask = activatedConfigsCache.get(trace);
+    Task<ConfigContainer> fetchedConfigsTask = fetchedConfigsCache.get();
+    Task<ConfigContainer> activatedConfigsTask = activatedConfigsCache.get();
 
     return Tasks.whenAllComplete(fetchedConfigsTask, activatedConfigsTask)
         .continueWithTask(
@@ -316,21 +317,7 @@ public class FirebaseRemoteConfig {
    */
   @NonNull
   public Task<Void> fetch() {
-    Trace trace = performanceTracer.startTrace("remote_config_fetch_and_activate");
-    Task<FetchResponse> fetchTask = fetchHandler.fetch(trace, performanceTracer);
-
-    // Convert Task type to Void.
-    return fetchTask.addOnCompleteListener(task -> {
-      if(task.isSuccessful()) {
-          trace.putAttribute("success", "true");
-      } else {
-        trace.putAttribute("success", "false");
-        if (task.getException() != null){
-          trace.putAttribute("exception", task.getException().getClass().getSimpleName());
-        }
-      }
-      trace.stop();
-    }).onSuccessTask((unusedFetchResponse) -> Tasks.forResult(null));
+    return fetch(frcMetadata.getMinimumFetchIntervalInSeconds());
   }
 
   /**
@@ -352,10 +339,22 @@ public class FirebaseRemoteConfig {
    */
   @NonNull
   public Task<Void> fetch(long minimumFetchIntervalInSeconds) {
-    Task<FetchResponse> fetchTask = fetchHandler.fetch(minimumFetchIntervalInSeconds, performanceTracer);
+    PerformanceTraceClient performanceTracer = PerformanceTraceClient.getInstance();
+    Trace trace = performanceTracer.startTrace("remote_config_fetch");
+    Task<FetchResponse> fetchTask = fetchHandler.fetch(minimumFetchIntervalInSeconds, trace, performanceTracer);
 
     // Convert Task type to Void.
-    return fetchTask.onSuccessTask((unusedFetchResponse) -> Tasks.forResult(null));
+    return fetchTask.addOnCompleteListener(task -> {
+      if(task.isSuccessful()) {
+        trace.putAttribute("success", "true");
+      } else {
+        trace.putAttribute("success", "false");
+        if (task.getException() != null){
+          trace.putAttribute("exception", task.getException().getClass().getSimpleName());
+        }
+      }
+      trace.stop();
+    }).onSuccessTask((unusedFetchResponse) -> Tasks.forResult(null));
   }
 
   /**
@@ -667,9 +666,9 @@ public class FirebaseRemoteConfig {
    * @hide
    */
   void startLoadingConfigsFromDisk() {
-    activatedConfigsCache.get(trace);
-    defaultConfigsCache.get(trace);
-    fetchedConfigsCache.get(trace);
+    activatedConfigsCache.get();
+    defaultConfigsCache.get();
+    fetchedConfigsCache.get();
   }
 
   /**

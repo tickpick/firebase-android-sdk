@@ -27,7 +27,7 @@ public class PerformanceTraceClient implements PerformanceTracer {
             synchronized (PerformanceTracer.class) {
                 localRef = instance;
                 if (localRef == null) {
-                    instance = localRef = new PerformanceTraceClient();
+                    instance = localRef = new PerformanceTraceClient(FirebasePerformance.getInstance());
                 }
             }
         }
@@ -40,7 +40,7 @@ public class PerformanceTraceClient implements PerformanceTracer {
 
     @Override
     public Trace newTrace(String s) {
-        return firebasePerformance.newTrace("");
+        return firebasePerformance.newTrace(s);
     }
 
     @Override

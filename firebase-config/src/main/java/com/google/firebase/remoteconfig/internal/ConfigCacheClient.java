@@ -94,7 +94,7 @@ public class ConfigCacheClient {
   /**
    * Returns the cached {@link ConfigContainer}, blocking on a file read if necessary.
    *
-   * <p>If no {@link ConfigContainer} has been read from disk yet, blocks on a {@link #get(Trace)} call.
+   * <p>If no {@link ConfigContainer} has been read from disk yet, blocks on a {@link #get()} call.
    * Returns null if the file read does not succeed within {@link #DISK_READ_TIMEOUT_IN_SECONDS}.
    */
   @Nullable
@@ -112,7 +112,7 @@ public class ConfigCacheClient {
     }
 
     try {
-      return await(get(trace), diskReadTimeoutInSeconds, TimeUnit.SECONDS);
+      return await(get(), diskReadTimeoutInSeconds, TimeUnit.SECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       Log.d(TAG, "Reading from storage file failed.", e);
       return null;

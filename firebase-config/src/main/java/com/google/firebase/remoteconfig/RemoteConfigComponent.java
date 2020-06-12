@@ -167,7 +167,7 @@ public class RemoteConfigComponent {
         defaultsCacheClient,
         getFetchHandler(namespace, fetchedCacheClient, metadataClient),
         getGetHandler(activatedCacheClient, defaultsCacheClient),
-        metadataClient, PerformanceTraceClient.getInstance());
+        metadataClient);
   }
 
   @VisibleForTesting
@@ -182,7 +182,7 @@ public class RemoteConfigComponent {
           ConfigCacheClient defaultsClient,
           ConfigFetchHandler fetchHandler,
           ConfigGetParameterHandler getHandler,
-          ConfigMetadataClient metadataClient, PerformanceTracer performanceTracer) {
+          ConfigMetadataClient metadataClient) {
     if (!frcNamespaceInstances.containsKey(namespace)) {
       FirebaseRemoteConfig in =
           new FirebaseRemoteConfig(
@@ -196,8 +196,7 @@ public class RemoteConfigComponent {
               defaultsClient,
               fetchHandler,
               getHandler,
-              metadataClient,
-              performanceTracer);
+              metadataClient);
       in.startLoadingConfigsFromDisk();
       frcNamespaceInstances.put(namespace, in);
     }
