@@ -39,6 +39,7 @@ buildscript {
         classpath 'digital.wup:android-maven-publish:3.6.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'org.jlleitschuh.gradle:ktlint-gradle:9.2.1'
+        classpath 'ru.tinkoff.gradle:jarjar:1.1.0'
     }
 }
 
