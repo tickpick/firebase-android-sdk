@@ -341,16 +341,16 @@ public class FirebaseRemoteConfig {
   public Task<Void> fetch(long minimumFetchIntervalInSeconds) {
     PerformanceTraceClient performanceTracer = PerformanceTraceClient.getInstance();
     Trace trace = performanceTracer.startTrace("remote_config_fetch");
+    trace.putAttribute("remote_config_sdk_version", BuildConfig.VERSION_NAME);
     Task<FetchResponse> fetchTask = fetchHandler.fetch(minimumFetchIntervalInSeconds, trace, performanceTracer);
 
     // Convert Task type to Void.
     return fetchTask.addOnCompleteListener(task -> {
       if(task.isSuccessful()) {
-        trace.putAttribute("success", "true");
+        trace.putAttribute("result", "success");
       } else {
-        trace.putAttribute("success", "false");
         if (task.getException() != null){
-          trace.putAttribute("exception", task.getException().getClass().getSimpleName());
+          trace.putAttribute("result", task.getException().getClass().getSimpleName());
         }
       }
       trace.stop();

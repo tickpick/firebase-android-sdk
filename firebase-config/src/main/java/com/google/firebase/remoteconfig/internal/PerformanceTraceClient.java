@@ -17,6 +17,8 @@ package com.google.firebase.remoteconfig.internal;
 import com.google.firebase.perf.FirebasePerformance;
 import com.google.firebase.perf.metrics.Trace;
 
+import java.util.concurrent.TimeUnit;
+
 public class PerformanceTraceClient implements PerformanceTracer {
     private static PerformanceTraceClient instance;
     private final FirebasePerformance firebasePerformance;
@@ -70,10 +72,18 @@ public class PerformanceTraceClient implements PerformanceTracer {
         }
 
         @Override
-        public long getElapsedTimeNanos() {
-            return end - start;
+        public long getElapsedTimeMillis() {
+            return TimeUnit.MILLISECONDS.convert(end - start, TimeUnit.NANOSECONDS);
+        }
+
+        @Override
+        public long getElapsedTimeHours() {
+            return TimeUnit.HOURS.convert(end - start, TimeUnit.NANOSECONDS);
+        }
+
+        @Override
+        public long getElapsedTimeSeconds() {
+            return TimeUnit.SECONDS.convert(end - start, TimeUnit.NANOSECONDS);
         }
     }
-
-
 }

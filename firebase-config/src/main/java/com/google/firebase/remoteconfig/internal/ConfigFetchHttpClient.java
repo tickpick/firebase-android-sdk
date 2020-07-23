@@ -340,7 +340,7 @@ public class ConfigFetchHttpClient {
     while ((current = br.read()) != -1) {
       responseStringBuilder.append((char) current);
     }
-
+    Log.d("Ashwin", responseStringBuilder.toString());
     return new JSONObject(responseStringBuilder.toString());
   }
 

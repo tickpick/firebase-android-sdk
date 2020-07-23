@@ -50,9 +50,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A handler for fetch requests to the Firebase Remote Config backend.
@@ -155,14 +157,14 @@ public class ConfigFetchHandler {
   public Task<FetchResponse> fetch(long minimumFetchIntervalInSeconds, Trace trace, PerformanceTracer performanceTracer) {
     long fetchIntervalInSeconds =
         frcMetadata.isDeveloperModeEnabled() ? 0L : minimumFetchIntervalInSeconds;
-    trace.putMetric("minimum_fetch_interval_in_seconds", fetchIntervalInSeconds);
+    trace.putMetric("minimum_fetch_interval_hours", HOURS.convert(fetchIntervalInSeconds, SECONDS));
     Timer cacheReadTimer = performanceTracer.newTimer();
     cacheReadTimer.start();
     return fetchedConfigsCache
         .get()
         .addOnCompleteListener(task -> {
           cacheReadTimer.stop();
-          trace.putMetric("cache_read_elapsed_time", cacheReadTimer.getElapsedTimeNanos());
+          trace.putMetric("cache_read_latency_milliseconds", cacheReadTimer.getElapsedTimeMillis());
         })
         .continueWithTask(
             executor,
@@ -209,15 +211,15 @@ public class ConfigFetchHandler {
           instanceIdTask.continueWithTask(
               executor,
               (completedIidTask) -> {
-                getIID.putAttribute("success", Boolean.toString(completedIidTask.isSuccessful()));
                 getIID.stop();
                 if (!completedIidTask.isSuccessful()) {
+                  getIID.putAttribute("result", completedIidTask.getException().getClass().getSimpleName());
                   return Tasks.forException(
                       new FirebaseRemoteConfigClientException(
                           "Failed to get Firebase Instance ID token for fetch.",
                           completedIidTask.getException()));
                 }
-
+                getIID.putAttribute("result", "success");
                 InstanceIdResult instanceIdResult = completedIidTask.getResult();
                 return fetchFromBackendAndCacheResponse(instanceIdResult, currentTime, trace, performanceTracer);
               });
@@ -285,11 +287,19 @@ public class ConfigFetchHandler {
       backendElaspsedTime.start();
       FetchResponse fetchResponse = fetchFromBackend(instanceId, fetchTime, trace);
       backendElaspsedTime.stop();
-      trace.putMetric("service_call_elapsed_time", backendElaspsedTime.getElapsedTimeNanos());
+      trace.putMetric("service_call_latency_milliseconds", backendElaspsedTime.getElapsedTimeMillis());
 
       if (fetchResponse.getStatus() != Status.BACKEND_UPDATES_FETCHED) {
         return Tasks.forResult(fetchResponse);
       }
+
+      Iterator<String> keys = fetchResponse.getFetchedConfigs().getConfigs().keys();
+
+      while(keys.hasNext()) {
+        String ignored = keys.next();
+        trace.incrementMetric("parameter_keys_count", 1);
+      }
+
       return fetchedConfigsCache
           .put(fetchResponse.getFetchedConfigs())
           .onSuccessTask(executor, (putContainer) -> Tasks.forResult(fetchResponse));

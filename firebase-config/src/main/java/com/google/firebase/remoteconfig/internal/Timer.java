@@ -17,5 +17,7 @@ package com.google.firebase.remoteconfig.internal;
 public interface Timer {
     void start();
     void stop();
-    long getElapsedTimeNanos();
+    long getElapsedTimeMillis();
+    long getElapsedTimeHours();
+    long getElapsedTimeSeconds();
 }
