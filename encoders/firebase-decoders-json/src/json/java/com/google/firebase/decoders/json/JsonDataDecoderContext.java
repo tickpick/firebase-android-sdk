@@ -21,6 +21,7 @@ import com.google.firebase.decoders.AnnotatedFieldHandler;
 import com.google.firebase.decoders.DataDecoder;
 import com.google.firebase.decoders.FieldRef;
 import com.google.firebase.decoders.ObjectDecoder;
+import com.google.firebase.decoders.ObjectDecoderContext;
 import com.google.firebase.decoders.TypeCreator;
 import com.google.firebase.decoders.TypeToken;
 import com.google.firebase.encoders.EncodingException;
@@ -50,22 +51,36 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class JsonDataDecoderContext implements DataDecoder {
+  private static final ObjectDecoder<Object> DEFAULT_FALLBACK_DECODER =
+          (ctx) -> {throw new EncodingException("Couldn't find encoder for type " + ctx.getTypeToken().getRawType());};
+
   private Map<Class<?>, ObjectDecoder<?>> objectDecoders = new HashMap<>();
   private Map<TypeToken.ClassToken<?>, ObjectDecoderContextImpl<?>> objectDecoderContexts =
       new HashMap<>();
   private Map<TypeToken.ClassToken<?>, TypeCreator<?>> typeCreators = new HashMap<>();
   private JsonReader reader;
   private final Map<Class<?>, AnnotatedFieldHandler<?>> fieldHandlers;
+  private final ObjectDecoder<?> fallBackObjectDecoder;
 
   JsonDataDecoderContext(@NonNull Map<Class<?>, ObjectDecoder<?>> objectDecoders) {
-    this(objectDecoders, Collections.emptyMap());
+    this(objectDecoders, Collections.emptyMap(), DEFAULT_FALLBACK_DECODER);
+  }
+
+  JsonDataDecoderContext(@NonNull Map<Class<?>, ObjectDecoder<?>> objectDecoders, @NonNull ObjectDecoder<?> fallBackObjectDecoder) {
+    this(objectDecoders, Collections.emptyMap(), fallBackObjectDecoder);
+  }
+
+  JsonDataDecoderContext(@NonNull Map<Class<?>, ObjectDecoder<?>> objectDecoders, @NonNull Map<Class<?>, AnnotatedFieldHandler<?>> fieldHandlers) {
+    this(objectDecoders, fieldHandlers, DEFAULT_FALLBACK_DECODER);
   }
 
   JsonDataDecoderContext(
       @NonNull Map<Class<?>, ObjectDecoder<?>> objectDecoders,
-      @NonNull Map<Class<?>, AnnotatedFieldHandler<?>> fieldHandlers) {
+      @NonNull Map<Class<?>, AnnotatedFieldHandler<?>> fieldHandlers,
+      @NonNull ObjectDecoder<?> fallBackObjectDecoder) {
     this.objectDecoders = objectDecoders;
     this.fieldHandlers = fieldHandlers;
+    this.fallBackObjectDecoder = fallBackObjectDecoder;
   }
 
   @NonNull
@@ -421,8 +436,9 @@ public class JsonDataDecoderContext implements DataDecoder {
       return decoderCxt;
     }
     ObjectDecoder objectDecoder = objectDecoders.get(classToken.getRawType());
-    if (objectDecoder == null)
-      throw new IllegalArgumentException(classToken.getRawType() + " is not register.");
+    if (objectDecoder == null) {
+      objectDecoder = fallBackObjectDecoder;
+    }
     ObjectDecoderContextImpl<T> objectDecoderCtx = ObjectDecoderContextImpl.of(classToken);
     @SuppressWarnings("unchecked")
     // Safe, because creator and and classToken always have the same actual type parameter
