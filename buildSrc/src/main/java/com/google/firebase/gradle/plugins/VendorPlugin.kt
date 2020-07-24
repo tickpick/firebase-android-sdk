@@ -49,8 +49,10 @@ class VendorPlugin : Plugin<Project> {
     fun configureAndroid(project: Project) {
 
         val vendor = project.configurations.create("vendor")
-        project.configurations.named("compileOnly") {
-            extendsFrom(vendor)
+        project.configurations.all {
+            when (name) {
+                "compileOnly", "testImplementation", "androidTestImplementation" -> extendsFrom(vendor)
+            }
         }
 
         val jarJar = project.configurations.create("firebaseJarJarArtifact")
