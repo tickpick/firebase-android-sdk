@@ -63,8 +63,8 @@ class VendorPlugin : Plugin<Project> {
         android.registerTransform(VendorTransform(
                 vendor,
                 JarJarTransformer(
-                        parentPackageProvider = { variantName ->
-                            android.libraryVariants.find { it.name == variantName }!!.applicationId
+                        parentPackageProvider = {
+                            android.libraryVariants.find { it.name == "release" }!!.applicationId
                         },
                         jarJarProvider = { jarJar.resolve() },
                         project = project,
@@ -78,13 +78,13 @@ interface JarTransformer {
 }
 
 class JarJarTransformer(
-    private val parentPackageProvider: (String) -> String,
+    private val parentPackageProvider: () -> String,
     private val jarJarProvider: () -> Collection<File>,
     private val project: Project,
     private val logger: Logger
 ) : JarTransformer {
     override fun transform(variantName: String, input: File, output: File, ownPackageNames: Set<String>, externalPackageNames: Set<String>) {
-        val parentPackage = parentPackageProvider(variantName)
+        val parentPackage = parentPackageProvider()
         val rulesFile = File.createTempFile("$parentPackage-$variantName", ".jarjar")
         rulesFile.printWriter().use {
             for (packageName in ownPackageNames) {
@@ -162,22 +162,28 @@ class VendorTransform(
     private fun process(workDir: File, transformInvocation: TransformInvocation): File {
         transformInvocation.context.variantName
         val unzippedDir = File(workDir, "unzipped")
+        val unzippedExcludedDir = File(workDir, "unzipped-excluded")
         unzippedDir.mkdirs()
+        unzippedExcludedDir.mkdirs()
+
+        val externalCodeDir = if (
+                transformInvocation.context.variantName.toLowerCase().contains("test"))
+            unzippedExcludedDir else unzippedDir
 
         for (input in transformInvocation.inputs) {
             for (directoryInput in input.directoryInputs) {
                 directoryInput.file.copyRecursively(unzippedDir)
             }
         }
-        val foo: List<String> = mutableListOf("Hello")
+
         val ownPackageNames = inferPackages(unzippedDir)
 
         for (jar in configuration.resolve()) {
-            unzipJar(jar, unzippedDir)
+            unzipJar(jar, externalCodeDir)
         }
-        val externalPackageNames = inferPackages(unzippedDir) subtract ownPackageNames
-        val java = File(unzippedDir, "java")
-        val javax = File(unzippedDir, "javax")
+        val externalPackageNames = inferPackages(externalCodeDir) subtract ownPackageNames
+        val java = File(externalCodeDir, "java")
+        val javax = File(externalCodeDir, "javax")
         if (java.exists() || javax.exists()) {
             // JarJar unconditionally skips any classes whose package name starts with "java" or "javax".
             throw GradleException("Vendoring java or javax packages is not supported. " +
