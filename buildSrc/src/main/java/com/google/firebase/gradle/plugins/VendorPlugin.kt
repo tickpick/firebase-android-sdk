@@ -28,7 +28,6 @@ import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
-import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -37,13 +36,11 @@ import org.gradle.api.logging.Logger
 
 class VendorPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.plugins.all(object : Action<Plugin<Any>> {
-            override fun execute(plugin: Plugin<Any>) {
-                when (plugin) {
-                    is LibraryPlugin -> configureAndroid(project)
-                }
+        project.plugins.all {
+            when (this) {
+                is LibraryPlugin -> configureAndroid(project)
             }
-        })
+        }
     }
 
     fun configureAndroid(project: Project) {
@@ -63,8 +60,13 @@ class VendorPlugin : Plugin<Project> {
         android.registerTransform(VendorTransform(
                 vendor,
                 JarJarTransformer(
-                        parentPackageProvider = {
-                            android.libraryVariants.find { it.name == "release" }!!.applicationId
+                        parentPackageProvider = { variantName ->
+                            val packageName = android.libraryVariants.find {
+                                it.name == "release"
+                            }!!.applicationId
+                            if (variantName.endsWith("AndroidTest"))
+                                "$packageName.$variantName"
+                            else packageName
                         },
                         jarJarProvider = { jarJar.resolve() },
                         project = project,
@@ -78,13 +80,13 @@ interface JarTransformer {
 }
 
 class JarJarTransformer(
-    private val parentPackageProvider: () -> String,
+    private val parentPackageProvider: (String) -> String,
     private val jarJarProvider: () -> Collection<File>,
     private val project: Project,
     private val logger: Logger
 ) : JarTransformer {
     override fun transform(variantName: String, input: File, output: File, ownPackageNames: Set<String>, externalPackageNames: Set<String>) {
-        val parentPackage = parentPackageProvider()
+        val parentPackage = parentPackageProvider(variantName)
         val rulesFile = File.createTempFile("$parentPackage-$variantName", ".jarjar")
         rulesFile.printWriter().use {
             for (packageName in ownPackageNames) {
@@ -125,6 +127,7 @@ class VendorTransform(
     }
 
     override fun transform(transformInvocation: TransformInvocation) {
+        transformInvocation.javaClass.typeParameters
         if (configuration.resolve().isEmpty()) {
             logger.info("Nothing to vendor. " +
                     "If you don't need vendor functionality please disable 'firebase-vendor' plugin. " +
@@ -162,13 +165,7 @@ class VendorTransform(
     private fun process(workDir: File, transformInvocation: TransformInvocation): File {
         transformInvocation.context.variantName
         val unzippedDir = File(workDir, "unzipped")
-        val unzippedExcludedDir = File(workDir, "unzipped-excluded")
         unzippedDir.mkdirs()
-        unzippedExcludedDir.mkdirs()
-
-        val externalCodeDir = if (
-                transformInvocation.context.variantName.toLowerCase().contains("test"))
-            unzippedExcludedDir else unzippedDir
 
         for (input in transformInvocation.inputs) {
             for (directoryInput in input.directoryInputs) {
@@ -179,11 +176,11 @@ class VendorTransform(
         val ownPackageNames = inferPackages(unzippedDir)
 
         for (jar in configuration.resolve()) {
-            unzipJar(jar, externalCodeDir)
+            unzipJar(jar, unzippedDir)
         }
-        val externalPackageNames = inferPackages(externalCodeDir) subtract ownPackageNames
-        val java = File(externalCodeDir, "java")
-        val javax = File(externalCodeDir, "javax")
+        val externalPackageNames = inferPackages(unzippedDir) subtract ownPackageNames
+        val java = File(unzippedDir, "java")
+        val javax = File(unzippedDir, "javax")
         if (java.exists() || javax.exists()) {
             // JarJar unconditionally skips any classes whose package name starts with "java" or "javax".
             throw GradleException("Vendoring java or javax packages is not supported. " +
