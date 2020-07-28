@@ -17,27 +17,30 @@ package com.google.firebase.encoders.reflective;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.firebase.encoders.annotations.Encodable;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
-class ReflectiveFieldSetter implements ReflectiveSetter {
-  private Field field;
+class ReflectiveMethodSetter implements ReflectiveSetter {
+  private Method method;
 
   @NonNull
-  static ReflectiveFieldSetter of(@NonNull Field field) {
-    return new ReflectiveFieldSetter(field);
+  static ReflectiveMethodSetter of(@NonNull Method setter) {
+    return new ReflectiveMethodSetter(setter);
   }
 
-  private ReflectiveFieldSetter(Field field) {
-    this.field = field;
+  private ReflectiveMethodSetter(Method method) {
+    this.method = method;
   }
 
   @Override
-  public void set(@NonNull Object obj, @Nullable Object value) {
-    field.setAccessible(true);
+  public void set(@NonNull Object obj, @Nullable Object val) {
+    method.setAccessible(true);
     try {
-      field.set(obj, value);
+      method.invoke(obj, val);
     } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    } catch (InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
@@ -45,18 +48,18 @@ class ReflectiveFieldSetter implements ReflectiveSetter {
   @NonNull
   @Override
   public Class<?> getFieldRawType() {
-    return field.getType();
+    return method.getParameterTypes()[0];
   }
 
   @Nullable
   @Override
   public Type getFieldGenericType() {
-    return field.getGenericType();
+    return method.getGenericParameterTypes()[0];
   }
 
   @Override
   public boolean isDecodedInline() {
-    Encodable.Field annotation = field.getAnnotation(Encodable.Field.class);
+    Encodable.Field annotation = method.getAnnotation(Encodable.Field.class);
     return annotation != null && annotation.inline();
   }
 }

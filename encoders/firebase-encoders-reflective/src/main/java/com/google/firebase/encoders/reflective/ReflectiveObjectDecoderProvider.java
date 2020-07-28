@@ -48,7 +48,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
 
     private final Map<String, FieldRef<?>> refs = new HashMap<>();
     private final Map<String, FieldDescriptor> descriptors = new HashMap<>();
-    private final Map<String, ReflectiveFieldSetter> fieldSetters = new HashMap<>();
+    private final Map<String, ReflectiveSetter> reflectiveSetters = new HashMap<>();
 
     private ReflectiveObjectDecoderImpl() {}
 
@@ -77,8 +77,8 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
                 fieldName,
                 buildFieldDescriptor(decodingKey(method), method.getDeclaredAnnotations()));
           }
-          if (fieldSetters.get(fieldName) == null) {
-            fieldSetters.put(fieldName, ReflectiveFieldSetter.of(method));
+          if (reflectiveSetters.get(fieldName) == null) {
+            reflectiveSetters.put(fieldName, ReflectiveMethodSetter.of(method));
           }
         }
         currentClass = currentClass.getSuperclass();
@@ -98,8 +98,8 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
                 fieldName,
                 buildFieldDescriptor(decodingKey(field), field.getDeclaredAnnotations()));
           }
-          if (fieldSetters.get(fieldName) == null) {
-            fieldSetters.put(fieldName, ReflectiveFieldSetter.of(field));
+          if (reflectiveSetters.get(fieldName) == null) {
+            reflectiveSetters.put(fieldName, ReflectiveFieldSetter.of(field));
           }
         }
         currentClass = currentClass.getSuperclass();
@@ -107,7 +107,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
     }
 
     private void decodeFields(ObjectDecoderContext<T> ctx) {
-      for (Map.Entry<String, ReflectiveFieldSetter> entry : fieldSetters.entrySet()) {
+      for (Map.Entry<String, ReflectiveSetter> entry : reflectiveSetters.entrySet()) {
         String fieldName = entry.getKey();
         Class<?> fieldType = entry.getValue().getFieldRawType();
         FieldDescriptor fieldDescriptor = descriptors.get(fieldName);
@@ -130,7 +130,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
         } else {
           TypeToken<?> fieldTypeToken =
               getFieldTypeToken(entry.getValue().getFieldGenericType(), ctx);
-          if (isInLine(fieldDescriptor)) {
+          if (entry.getValue().isDecodedInline()) {
             if (fieldTypeToken instanceof TypeToken.ClassToken) {
               @SuppressWarnings("unchecked")
               TypeToken.ClassToken<Object> classToken =
@@ -170,11 +170,11 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
 
     @SuppressWarnings("unchecked")
     private void setFields(CreationContext creationCtx, Object instance) {
-      for (Map.Entry<String, ReflectiveFieldSetter> entry : fieldSetters.entrySet()) {
+      for (Map.Entry<String, ReflectiveSetter> entry : reflectiveSetters.entrySet()) {
         String fieldName = entry.getKey();
         FieldRef<?> ref = refs.get(fieldName);
         Class<?> fieldType = entry.getValue().getFieldRawType();
-        ReflectiveFieldSetter fieldSetter = entry.getValue();
+        ReflectiveSetter fieldSetter = entry.getValue();
         if (fieldSetter == null) {
           throw new RuntimeException("FieldSetter for field:" + fieldName + " is null.");
         }

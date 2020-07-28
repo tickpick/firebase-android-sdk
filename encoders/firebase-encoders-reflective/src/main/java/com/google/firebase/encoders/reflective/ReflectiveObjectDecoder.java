@@ -21,6 +21,20 @@ import com.google.firebase.decoders.TypeCreator;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Uses Java reflection to decode arbitrary objects.
+ *
+ * <p>{@link ReflectiveObjectDecoder} can be registered by {@link
+ * com.google.firebase.decoders.json.JsonDataDecoderBuilder}
+ *
+ * <pre>{@code
+ * DataDecoder decoder =
+ *     new JsonDataDecoderBuilder()
+ *     .registerFallBackDecoder(ReflectiveObjectDecoder.DEFAULT)
+ *     .build();
+ *
+ * }</pre>
+ */
 public class ReflectiveObjectDecoder implements ObjectDecoder<Object> {
 
   @NonNull public static ReflectiveObjectDecoder DEFAULT = new ReflectiveObjectDecoder();

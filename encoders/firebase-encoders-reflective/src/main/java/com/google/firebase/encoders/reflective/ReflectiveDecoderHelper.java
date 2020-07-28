@@ -34,26 +34,13 @@ class ReflectiveDecoderHelper {
     return builder.build();
   }
 
-  static boolean isInLine(FieldDescriptor fieldDescriptor) {
-    Encodable.Field annotation = fieldDescriptor.getProperty(Encodable.Field.class);
-    return annotation != null && annotation.inline();
-  }
-
   static String fieldName(Method method) {
     String methodName = method.getName();
     final String prefix = "set";
     if (!methodName.startsWith(prefix)) {
       throw new IllegalArgumentException("Unknown Bean prefix for method: " + methodName);
     }
-    String strippedName = methodName.substring(prefix.length());
-    // Make sure the first word or upper-case prefix is converted to lower-case
-    char[] chars = strippedName.toCharArray();
-    int pos = 0;
-    while (pos < chars.length && Character.isUpperCase(chars[pos])) {
-      chars[pos] = Character.toLowerCase(chars[pos]);
-      pos++;
-    }
-    return new String(chars);
+    return Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
   }
 
   static String decodingKey(AccessibleObject accessibleObject) {
