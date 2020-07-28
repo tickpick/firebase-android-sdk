@@ -16,7 +16,6 @@ package com.google.firebase.encoders.reflective;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,18 +24,20 @@ import java.lang.reflect.Type;
 abstract class ReflectiveFieldSetter {
 
   abstract void set(@NonNull Object obj, @Nullable Object val);
+
   abstract Class<?> getFieldRawType();
+
   abstract Type getFieldGenericType();
 
   private ReflectiveFieldSetter() {}
 
   @NonNull
-  static ReflectiveFieldSetter of(@NonNull Field field){
+  static ReflectiveFieldSetter of(@NonNull Field field) {
     return new FieldSetter(field);
   }
 
   @NonNull
-  static ReflectiveFieldSetter of(@NonNull Method setter){
+  static ReflectiveFieldSetter of(@NonNull Method setter) {
     return new MethodSetter(setter);
   }
 

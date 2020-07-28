@@ -15,18 +15,15 @@
 package com.google.firebase.encoders.reflective;
 
 import androidx.annotation.NonNull;
-
 import com.google.firebase.decoders.ObjectDecoder;
 import com.google.firebase.decoders.ObjectDecoderContext;
 import com.google.firebase.decoders.TypeCreator;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class ReflectiveObjectDecoder implements ObjectDecoder<Object> {
 
-  @NonNull
-  public static ReflectiveObjectDecoder DEFAULT = new ReflectiveObjectDecoder();
+  @NonNull public static ReflectiveObjectDecoder DEFAULT = new ReflectiveObjectDecoder();
 
   private final Map<Class<?>, ObjectDecoder<?>> cache = new HashMap<>();
 

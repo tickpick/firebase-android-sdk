@@ -14,32 +14,25 @@
 
 package com.google.firebase.encoders.reflective;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
+import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.google.firebase.decoders.DataDecoder;
-import com.google.firebase.decoders.ObjectDecoder;
 import com.google.firebase.decoders.Safe;
 import com.google.firebase.decoders.TypeToken;
 import com.google.firebase.decoders.json.JsonDataDecoderBuilder;
-import com.google.firebase.decoders.json.JsonDataDecoderContext;
 import com.google.firebase.encoders.annotations.Encodable;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.google.common.truth.Truth.assertThat;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class ReflectiveObjectDecoderTest {
   private static DataDecoder decoder =
-          new JsonDataDecoderBuilder().registerFallBackDecoder(ReflectiveObjectDecoder.DEFAULT).build();
+      new JsonDataDecoderBuilder().registerFallBackDecoder(ReflectiveObjectDecoder.DEFAULT).build();
 
   static class FieldFoo {
     public int i;
@@ -101,7 +94,7 @@ public class ReflectiveObjectDecoderTest {
     public T t;
     public SubFoo<String> subFoo;
 
-    public Foo(){}
+    public Foo() {}
   }
 
   static class SubFoo<T> {
@@ -110,16 +103,15 @@ public class ReflectiveObjectDecoderTest {
     public T t;
     public T s;
 
-    public SubFoo(){}
+    public SubFoo() {}
   }
 
   @Test
   public <T> void nestedGenericType_ShouldDecodeCorrectly() throws IOException {
     String json =
-            "{\"a\":1, \"b\":true, \"t\":\"str\", \"subFoo\": {\"a\":1, \"b\":true, \"t\":\"str\"}}";
+        "{\"a\":1, \"b\":true, \"t\":\"str\", \"subFoo\": {\"a\":1, \"b\":true, \"t\":\"str\"}}";
     InputStream input = new ByteArrayInputStream(json.getBytes(UTF_8));
-    Foo<String> foo =
-            decoder.decode(input, TypeToken.of(new Safe<Foo<String>>() {}));
+    Foo<String> foo = decoder.decode(input, TypeToken.of(new Safe<Foo<String>>() {}));
 
     assertThat(foo.a).isEqualTo(1);
     assertThat(foo.b).isEqualTo(true);

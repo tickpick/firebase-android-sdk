@@ -75,6 +75,7 @@ package com.google.firebase.decoders {
     method @NonNull public Class<T> getRawType();
     method @NonNull public static <T> com.google.firebase.decoders.TypeToken<T> of(@NonNull com.google.firebase.decoders.Safe<T>);
     method @NonNull public static <T> com.google.firebase.decoders.TypeToken<T> of(@NonNull Class<T>);
+    method @NonNull public static <T> com.google.firebase.decoders.TypeToken<T> of(@NonNull java.lang.reflect.Type);
     field @NonNull protected Class<T> rawType;
   }
 
@@ -111,6 +112,7 @@ package com.google.firebase.decoders.json {
     ctor public JsonDataDecoderBuilder();
     method @NonNull public com.google.firebase.decoders.DataDecoder build();
     method @NonNull public <T> com.google.firebase.decoders.json.JsonDataDecoderBuilder register(@NonNull Class<T>, @NonNull com.google.firebase.decoders.ObjectDecoder<? extends T>);
+    method @NonNull public com.google.firebase.decoders.json.JsonDataDecoderBuilder registerFallBackDecoder(@NonNull com.google.firebase.decoders.ObjectDecoder<java.lang.Object>);
   }
 
   public class JsonDataDecoderContext implements com.google.firebase.decoders.DataDecoder {

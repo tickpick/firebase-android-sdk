@@ -18,8 +18,6 @@ import androidx.annotation.NonNull;
 import com.google.firebase.decoders.DataDecoder;
 import com.google.firebase.decoders.DecoderConfig;
 import com.google.firebase.decoders.ObjectDecoder;
-import com.google.firebase.encoders.EncodingException;
-
 import java.util.HashMap;
 
 public final class JsonDataDecoderBuilder implements DecoderConfig<JsonDataDecoderBuilder> {
@@ -37,15 +35,16 @@ public final class JsonDataDecoderBuilder implements DecoderConfig<JsonDataDecod
   }
 
   @NonNull
-  public JsonDataDecoderBuilder registerFallBackDecoder(@NonNull ObjectDecoder<Object> objectDecoder) {
+  public JsonDataDecoderBuilder registerFallBackDecoder(
+      @NonNull ObjectDecoder<Object> objectDecoder) {
     this.fallbackDecoder = objectDecoder;
     return this;
   }
 
   @NonNull
   public DataDecoder build() {
-    return fallbackDecoder == null?
-            new JsonDataDecoderContext(objectDecoders) :
-            new JsonDataDecoderContext(objectDecoders, fallbackDecoder);
+    return fallbackDecoder == null
+        ? new JsonDataDecoderContext(objectDecoders)
+        : new JsonDataDecoderContext(objectDecoders, fallbackDecoder);
   }
 }

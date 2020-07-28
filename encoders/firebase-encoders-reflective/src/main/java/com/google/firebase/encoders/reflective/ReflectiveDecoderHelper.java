@@ -14,26 +14,21 @@
 
 package com.google.firebase.encoders.reflective;
 
-import com.google.firebase.decoders.ObjectDecoderContext;
-import com.google.firebase.decoders.TypeToken;
 import com.google.firebase.encoders.EncodingException;
 import com.google.firebase.encoders.FieldDescriptor;
 import com.google.firebase.encoders.annotations.Encodable;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 
 class ReflectiveDecoderHelper {
-  private ReflectiveDecoderHelper(){}
+  private ReflectiveDecoderHelper() {}
 
   static FieldDescriptor buildFieldDescriptor(String decodingKey, Annotation[] annotations) {
     FieldDescriptor.Builder builder = FieldDescriptor.builder(decodingKey);
-    for (Annotation annotation: annotations) {
+    for (Annotation annotation : annotations) {
       builder.withProperty(annotation);
     }
     return builder.build();
@@ -66,7 +61,7 @@ class ReflectiveDecoderHelper {
     if (accessibleObject instanceof Field) {
       key = ((Field) accessibleObject).getName();
     } else if (accessibleObject instanceof Method) {
-      key = fieldName((Method)accessibleObject);
+      key = fieldName((Method) accessibleObject);
     } else {
       throw new EncodingException("Constructor shouldn't be used to get its decoding key");
     }

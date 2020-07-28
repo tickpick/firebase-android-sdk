@@ -15,7 +15,6 @@
 package com.google.firebase.encoders.reflective;
 
 import androidx.annotation.NonNull;
-
 import com.google.firebase.decoders.ObjectDecoder;
 
 interface ObjectDecoderProvider {

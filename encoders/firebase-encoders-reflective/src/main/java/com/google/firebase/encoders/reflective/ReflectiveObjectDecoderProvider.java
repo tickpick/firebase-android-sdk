@@ -14,8 +14,9 @@
 
 package com.google.firebase.encoders.reflective;
 
-import androidx.annotation.NonNull;
+import static com.google.firebase.encoders.reflective.ReflectiveDecoderHelper.*;
 
+import androidx.annotation.NonNull;
 import com.google.firebase.decoders.CreationContext;
 import com.google.firebase.decoders.FieldRef;
 import com.google.firebase.decoders.ObjectDecoder;
@@ -24,18 +25,14 @@ import com.google.firebase.decoders.TypeCreator;
 import com.google.firebase.decoders.TypeToken;
 import com.google.firebase.encoders.EncodingException;
 import com.google.firebase.encoders.FieldDescriptor;
-import static com.google.firebase.encoders.reflective.ReflectiveDecoderHelper.*;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider{
+class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
 
   static ReflectiveObjectDecoderProvider INSTANCE = new ReflectiveObjectDecoderProvider();
 
@@ -69,14 +66,16 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider{
       Class<? super T> currentClass = clazz;
       while (currentClass != Object.class && currentClass != null) {
         Method[] methods = currentClass.getDeclaredMethods();
-        for (Method method: methods) {
+        for (Method method : methods) {
           if (!shouldIncludeSetter(method)) {
             continue;
           }
 
           String fieldName = fieldName(method);
           if (descriptors.get(fieldName) == null) {
-            descriptors.put(fieldName, buildFieldDescriptor(decodingKey(method), method.getDeclaredAnnotations()));
+            descriptors.put(
+                fieldName,
+                buildFieldDescriptor(decodingKey(method), method.getDeclaredAnnotations()));
           }
           if (fieldSetters.get(fieldName) == null) {
             fieldSetters.put(fieldName, ReflectiveFieldSetter.of(method));
@@ -89,13 +88,15 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider{
     private void readFields(Class<T> clazz) {
       Class<? super T> currentClass = clazz;
       while (currentClass != Object.class && currentClass != null) {
-        for (Field field: currentClass.getDeclaredFields()) {
+        for (Field field : currentClass.getDeclaredFields()) {
           if (!shouldIncludeField(field)) {
             continue;
           }
           String fieldName = field.getName();
           if (descriptors.get(fieldName) == null) {
-            descriptors.put(fieldName, buildFieldDescriptor(decodingKey(field), field.getDeclaredAnnotations()));
+            descriptors.put(
+                fieldName,
+                buildFieldDescriptor(decodingKey(field), field.getDeclaredAnnotations()));
           }
           if (fieldSetters.get(fieldName) == null) {
             fieldSetters.put(fieldName, ReflectiveFieldSetter.of(field));
@@ -127,14 +128,17 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider{
         } else if (fieldType.equals(boolean.class)) {
           ref = ctx.decodeBoolean(fieldDescriptor);
         } else {
-          TypeToken<?> fieldTypeToken = getFieldTypeToken(entry.getValue().getFieldGenericType(), ctx);
+          TypeToken<?> fieldTypeToken =
+              getFieldTypeToken(entry.getValue().getFieldGenericType(), ctx);
           if (isInLine(fieldDescriptor)) {
             if (fieldTypeToken instanceof TypeToken.ClassToken) {
               @SuppressWarnings("unchecked")
-              TypeToken.ClassToken<Object> classToken = (TypeToken.ClassToken<Object>) fieldTypeToken;
+              TypeToken.ClassToken<Object> classToken =
+                  (TypeToken.ClassToken<Object>) fieldTypeToken;
               ref = ctx.decodeInline(classToken, ReflectiveObjectDecoder.DEFAULT);
             } else {
-              throw new IllegalArgumentException("Array types cannot be decoded inline, type:" + fieldTypeToken + " found.");
+              throw new IllegalArgumentException(
+                  "Array types cannot be decoded inline, type:" + fieldTypeToken + " found.");
             }
           } else {
             ref = ctx.decode(fieldDescriptor, fieldTypeToken);
@@ -147,7 +151,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider{
     private TypeToken<?> getFieldTypeToken(Type type, ObjectDecoderContext<?> ctx) {
       if (type instanceof TypeVariable) {
         TypeVariable[] typeVariables = ctx.getTypeToken().getRawType().getTypeParameters();
-        for (int i=0; i<typeVariables.length; i++) {
+        for (int i = 0; i < typeVariables.length; i++) {
           if (typeVariables[i].equals(type)) {
             return ctx.getTypeArgument(i);
           }
@@ -178,7 +182,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider{
           throw new RuntimeException("FieldRef for field:" + fieldName + " is null.");
         }
         if (ref instanceof FieldRef.Boxed) {
-          Object val = creationCtx.get((FieldRef.Boxed<?>)ref);
+          Object val = creationCtx.get((FieldRef.Boxed<?>) ref);
           fieldSetter.set(instance, val);
         } else if (fieldType.equals(int.class)) {
           int val = creationCtx.getInteger((FieldRef.Primitive<Integer>) ref);

@@ -15,18 +15,16 @@
 package com.google.firebase.encoders.reflective;
 
 import androidx.annotation.NonNull;
-
 import com.google.firebase.decoders.TypeToken;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 final class ReflectiveInitializer {
 
   @NonNull
-  static <T> T newInstance(TypeToken.ClassToken<T> classToken){
+  static <T> T newInstance(TypeToken.ClassToken<T> classToken) {
     try {
-      Constructor<T>  constructor = classToken.getRawType().getDeclaredConstructor();
+      Constructor<T> constructor = classToken.getRawType().getDeclaredConstructor();
       return constructor.newInstance();
     } catch (NoSuchMethodException e) {
       // TODO: try JVM sun.misc.Unsafe to allocate an instance
@@ -40,5 +38,5 @@ final class ReflectiveInitializer {
     }
   }
 
-  private ReflectiveInitializer(){}
+  private ReflectiveInitializer() {}
 }
