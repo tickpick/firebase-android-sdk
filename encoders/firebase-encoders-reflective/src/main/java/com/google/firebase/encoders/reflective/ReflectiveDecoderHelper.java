@@ -17,19 +17,47 @@ package com.google.firebase.encoders.reflective;
 import com.google.firebase.encoders.EncodingException;
 import com.google.firebase.encoders.FieldDescriptor;
 import com.google.firebase.encoders.annotations.Encodable;
+import com.google.firebase.encoders.annotations.ExtraProperty;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 class ReflectiveDecoderHelper {
   private ReflectiveDecoderHelper() {}
 
-  static FieldDescriptor buildFieldDescriptor(String decodingKey, Annotation[] annotations) {
+  static FieldDescriptor buildFieldDescriptor(Method method) {
+    String decodingKey = decodingKey(method);
+    Annotation[] annotations = method.getDeclaredAnnotations();
     FieldDescriptor.Builder builder = FieldDescriptor.builder(decodingKey);
     for (Annotation annotation : annotations) {
-      builder.withProperty(annotation);
+      ExtraProperty extraProperty = annotation.annotationType().getAnnotation(ExtraProperty.class);
+      if (extraProperty != null) {
+        Set<Class<?>> allowedTypes = new HashSet<>(Arrays.asList(extraProperty.allowedTypes()));
+        if (allowedTypes.size() == 0 || allowedTypes.contains(method.getParameterTypes()[0])) {
+          builder.withProperty(annotation);
+        }
+      }
+    }
+    return builder.build();
+  }
+
+  static FieldDescriptor buildFieldDescriptor(Field field) {
+    String decodingKey = decodingKey(field);
+    Annotation[] annotations = field.getDeclaredAnnotations();
+    FieldDescriptor.Builder builder = FieldDescriptor.builder(decodingKey);
+    for (Annotation annotation : annotations) {
+      ExtraProperty extraProperty = annotation.annotationType().getAnnotation(ExtraProperty.class);
+      if (extraProperty != null) {
+        Set<Class<?>> allowedTypes = new HashSet<>(Arrays.asList(extraProperty.allowedTypes()));
+        if (allowedTypes.size() == 0 || allowedTypes.contains(field.getType())) {
+          builder.withProperty(annotation);
+        }
+      }
     }
     return builder.build();
   }

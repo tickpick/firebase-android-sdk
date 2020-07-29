@@ -73,9 +73,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
 
           String fieldName = fieldName(method);
           if (descriptors.get(fieldName) == null) {
-            descriptors.put(
-                fieldName,
-                buildFieldDescriptor(decodingKey(method), method.getDeclaredAnnotations()));
+            descriptors.put(fieldName, buildFieldDescriptor(method));
           }
           if (reflectiveSetters.get(fieldName) == null) {
             reflectiveSetters.put(fieldName, ReflectiveMethodSetter.of(method));
@@ -94,9 +92,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
           }
           String fieldName = field.getName();
           if (descriptors.get(fieldName) == null) {
-            descriptors.put(
-                fieldName,
-                buildFieldDescriptor(decodingKey(field), field.getDeclaredAnnotations()));
+            descriptors.put(fieldName, buildFieldDescriptor(field));
           }
           if (reflectiveSetters.get(fieldName) == null) {
             reflectiveSetters.put(fieldName, ReflectiveFieldSetter.of(field));
