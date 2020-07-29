@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-class ReflectiveDecoderFieldContextImp<T> implements ReflectiveDecoderFieldContext<T> {
+class ReflectiveDecoderFieldContextImpl<T> implements ReflectiveDecoderFieldContext<T> {
   private FieldDescriptor fieldDescriptor;
   private ReflectiveSetter<T> setter;
   private FieldRef<T> fieldRef;
@@ -37,15 +37,15 @@ class ReflectiveDecoderFieldContextImp<T> implements ReflectiveDecoderFieldConte
   private Class<T> rawType;
   private boolean inline;
 
-  public static ReflectiveDecoderFieldContextImp<?> of(Method method) {
-    return new ReflectiveDecoderFieldContextImp(method);
+  public static ReflectiveDecoderFieldContextImpl<?> of(Method method) {
+    return new ReflectiveDecoderFieldContextImpl(method);
   }
 
-  public static ReflectiveDecoderFieldContextImp<?> of(Field field) {
-    return new ReflectiveDecoderFieldContextImp(field);
+  public static ReflectiveDecoderFieldContextImpl<?> of(Field field) {
+    return new ReflectiveDecoderFieldContextImpl(field);
   }
 
-  private ReflectiveDecoderFieldContextImp(Method method) {
+  private ReflectiveDecoderFieldContextImpl(Method method) {
     this.fieldDescriptor = buildFieldDescriptor(method);
     this.genericType = method.getGenericParameterTypes()[0];
     @SuppressWarnings("unchecked")
@@ -65,7 +65,7 @@ class ReflectiveDecoderFieldContextImp<T> implements ReflectiveDecoderFieldConte
         };
   }
 
-  private ReflectiveDecoderFieldContextImp(Field field) {
+  private ReflectiveDecoderFieldContextImpl(Field field) {
     this.fieldDescriptor = buildFieldDescriptor(field);
     this.genericType = field.getGenericType();
     @SuppressWarnings("unchecked")

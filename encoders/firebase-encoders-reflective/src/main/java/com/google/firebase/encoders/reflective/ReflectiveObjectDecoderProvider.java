@@ -70,7 +70,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
           }
           String fieldName = fieldName(method);
           if (!fieldContexts.containsKey(fieldName)) {
-            fieldContexts.put(fieldName, ReflectiveDecoderFieldContextImp.of(method));
+            fieldContexts.put(fieldName, ReflectiveDecoderFieldContextImpl.of(method));
           }
         }
         currentClass = currentClass.getSuperclass();
@@ -86,7 +86,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
           }
           String fieldName = field.getName();
           if (!fieldContexts.containsKey(fieldName)) {
-            fieldContexts.put(fieldName, ReflectiveDecoderFieldContextImp.of(field));
+            fieldContexts.put(fieldName, ReflectiveDecoderFieldContextImpl.of(field));
           }
         }
         currentClass = currentClass.getSuperclass();

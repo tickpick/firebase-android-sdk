@@ -34,13 +34,14 @@ final class ReflectiveInitializer {
           "Class "
               + classToken
               + " does not define a no-argument constructor. If you are using ProGuard, make "
-              + "sure these constructors are not stripped.");
+              + "sure these constructors are not stripped."
+              + e);
     } catch (IllegalAccessException e) {
-      throw new EncodingException(e.toString());
+      throw new EncodingException("Could not instantiate type " + classToken, e);
     } catch (InstantiationException e) {
-      throw new EncodingException(e.toString());
+      throw new EncodingException("Could not instantiate type " + classToken, e);
     } catch (InvocationTargetException e) {
-      throw new EncodingException(e.toString());
+      throw new EncodingException("Could not instantiate type " + classToken, e);
     }
   }
 
