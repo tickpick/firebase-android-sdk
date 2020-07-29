@@ -14,9 +14,23 @@
 
 package com.google.firebase.encoders.reflective;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import com.google.firebase.decoders.FieldRef;
+import com.google.firebase.encoders.FieldDescriptor;
+import java.lang.reflect.Type;
 
-interface ReflectiveSetter<T> {
-  void set(@NonNull Object obj, @Nullable T val);
+interface ReflectiveDecoderFieldContext<T> {
+
+  Class<T> getFieldRawType();
+
+  Type getFieldGenericType();
+
+  FieldDescriptor getFieldDescriptor();
+
+  ReflectiveSetter<T> getReflectiveSetter();
+
+  FieldRef<T> getFieldRef();
+
+  FieldRef<T> putFieldRef(FieldRef<T> fieldRef);
+
+  boolean isInline();
 }

@@ -16,6 +16,7 @@ package com.google.firebase.encoders.reflective;
 
 import androidx.annotation.NonNull;
 import com.google.firebase.decoders.TypeToken;
+import com.google.firebase.encoders.EncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
@@ -28,7 +29,11 @@ final class ReflectiveInitializer {
       return constructor.newInstance();
     } catch (NoSuchMethodException e) {
       // TODO: try JVM sun.misc.Unsafe to allocate an instance
-      throw new RuntimeException(e);
+      throw new EncodingException(
+          "Class "
+              + classToken
+              + " does not define a no-argument constructor. If you are using ProGuard, make "
+              + "sure these constructors are not stripped.");
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     } catch (InstantiationException e) {

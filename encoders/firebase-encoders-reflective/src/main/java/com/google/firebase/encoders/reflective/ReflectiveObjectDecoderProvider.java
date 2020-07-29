@@ -14,8 +14,6 @@
 
 package com.google.firebase.encoders.reflective;
 
-import static com.google.firebase.encoders.reflective.ReflectiveDecoderHelper.*;
-
 import androidx.annotation.NonNull;
 import com.google.firebase.decoders.CreationContext;
 import com.google.firebase.decoders.FieldRef;
@@ -25,8 +23,10 @@ import com.google.firebase.decoders.TypeCreator;
 import com.google.firebase.decoders.TypeToken;
 import com.google.firebase.encoders.EncodingException;
 import com.google.firebase.encoders.FieldDescriptor;
+import com.google.firebase.encoders.annotations.Encodable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.HashMap;
@@ -46,9 +46,7 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
 
   private static class ReflectiveObjectDecoderImpl<T> implements ObjectDecoder<T> {
 
-    private final Map<String, FieldRef<?>> refs = new HashMap<>();
-    private final Map<String, FieldDescriptor> descriptors = new HashMap<>();
-    private final Map<String, ReflectiveSetter> reflectiveSetters = new HashMap<>();
+    private final Map<String, ReflectiveDecoderFieldContext> fieldContexts = new HashMap<>();
 
     private ReflectiveObjectDecoderImpl() {}
 
@@ -70,13 +68,9 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
           if (!shouldIncludeSetter(method)) {
             continue;
           }
-
           String fieldName = fieldName(method);
-          if (descriptors.get(fieldName) == null) {
-            descriptors.put(fieldName, buildFieldDescriptor(method));
-          }
-          if (reflectiveSetters.get(fieldName) == null) {
-            reflectiveSetters.put(fieldName, ReflectiveMethodSetter.of(method));
+          if (!fieldContexts.containsKey(fieldName)) {
+            fieldContexts.put(fieldName, ReflectiveDecoderFieldContextImp.of(method));
           }
         }
         currentClass = currentClass.getSuperclass();
@@ -91,11 +85,8 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
             continue;
           }
           String fieldName = field.getName();
-          if (descriptors.get(fieldName) == null) {
-            descriptors.put(fieldName, buildFieldDescriptor(field));
-          }
-          if (reflectiveSetters.get(fieldName) == null) {
-            reflectiveSetters.put(fieldName, ReflectiveFieldSetter.of(field));
+          if (!fieldContexts.containsKey(fieldName)) {
+            fieldContexts.put(fieldName, ReflectiveDecoderFieldContextImp.of(field));
           }
         }
         currentClass = currentClass.getSuperclass();
@@ -103,45 +94,45 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
     }
 
     private void decodeFields(ObjectDecoderContext<T> ctx) {
-      for (Map.Entry<String, ReflectiveSetter> entry : reflectiveSetters.entrySet()) {
-        String fieldName = entry.getKey();
-        Class<?> fieldType = entry.getValue().getFieldRawType();
-        FieldDescriptor fieldDescriptor = descriptors.get(fieldName);
-        if (fieldDescriptor == null) {
-          throw new RuntimeException(fieldName + " did not have a FieldDescriptor.");
-        }
-        FieldRef<?> ref;
-        if (fieldType.equals(int.class)) {
-          ref = ctx.decodeInteger(fieldDescriptor);
-        } else if (fieldType.equals(long.class)) {
-          ref = ctx.decodeLong(fieldDescriptor);
-        } else if (fieldType.equals(short.class)) {
-          ref = ctx.decodeShort(fieldDescriptor);
-        } else if (fieldType.equals(double.class)) {
-          ref = ctx.decodeDouble(fieldDescriptor);
-        } else if (fieldType.equals(float.class)) {
-          ref = ctx.decodeFloat(fieldDescriptor);
-        } else if (fieldType.equals(boolean.class)) {
-          ref = ctx.decodeBoolean(fieldDescriptor);
-        } else {
-          TypeToken<?> fieldTypeToken =
-              getFieldTypeToken(entry.getValue().getFieldGenericType(), ctx);
-          if (entry.getValue().isDecodedInline()) {
-            if (fieldTypeToken instanceof TypeToken.ClassToken) {
-              @SuppressWarnings("unchecked")
-              TypeToken.ClassToken<Object> classToken =
-                  (TypeToken.ClassToken<Object>) fieldTypeToken;
-              ref = ctx.decodeInline(classToken, ReflectiveObjectDecoder.DEFAULT);
-            } else {
-              throw new IllegalArgumentException(
-                  "Array types cannot be decoded inline, type:" + fieldTypeToken + " found.");
-            }
-          } else {
-            ref = ctx.decode(fieldDescriptor, fieldTypeToken);
-          }
-        }
-        refs.put(fieldName, ref);
+      for (ReflectiveDecoderFieldContext<?> fieldContext : fieldContexts.values()) {
+        decodeField(ctx, fieldContext);
       }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <TField> void decodeField(
+        ObjectDecoderContext<T> ctx, ReflectiveDecoderFieldContext<TField> fieldContext) {
+      Class<TField> fieldType = fieldContext.getFieldRawType();
+      FieldDescriptor fieldDescriptor = fieldContext.getFieldDescriptor();
+      FieldRef<TField> ref;
+      if (fieldType.equals(int.class)) {
+        ref = (FieldRef<TField>) ctx.decodeInteger(fieldDescriptor);
+      } else if (fieldType.equals(long.class)) {
+        ref = (FieldRef<TField>) ctx.decodeLong(fieldDescriptor);
+      } else if (fieldType.equals(short.class)) {
+        ref = (FieldRef<TField>) ctx.decodeShort(fieldDescriptor);
+      } else if (fieldType.equals(double.class)) {
+        ref = (FieldRef<TField>) ctx.decodeDouble(fieldDescriptor);
+      } else if (fieldType.equals(float.class)) {
+        ref = (FieldRef<TField>) ctx.decodeFloat(fieldDescriptor);
+      } else if (fieldType.equals(boolean.class)) {
+        ref = (FieldRef<TField>) ctx.decodeBoolean(fieldDescriptor);
+      } else {
+        TypeToken<TField> fieldTypeToken =
+            (TypeToken<TField>) getFieldTypeToken(fieldContext.getFieldGenericType(), ctx);
+        if (fieldContext.isInline()) {
+          if (fieldTypeToken instanceof TypeToken.ClassToken) {
+            TypeToken.ClassToken<Object> classToken = (TypeToken.ClassToken<Object>) fieldTypeToken;
+            ref = (FieldRef<TField>) ctx.decodeInline(classToken, ReflectiveObjectDecoder.DEFAULT);
+          } else {
+            throw new IllegalArgumentException(
+                "Array types cannot be decoded inline, type:" + fieldTypeToken + " found.");
+          }
+        } else {
+          ref = ctx.decode(fieldDescriptor, fieldTypeToken);
+        }
+      }
+      fieldContext.putFieldRef(ref);
     }
 
     private TypeToken<?> getFieldTypeToken(Type type, ObjectDecoderContext<?> ctx) {
@@ -152,6 +143,11 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
             return ctx.getTypeArgument(i);
           }
         }
+        throw new EncodingException(
+            "Class "
+                + ctx.getTypeToken()
+                + "does not have type variable "
+                + ((TypeVariable) type).getName());
       }
       return TypeToken.of(type);
     }
@@ -164,47 +160,91 @@ class ReflectiveObjectDecoderProvider implements ObjectDecoderProvider {
       });
     }
 
-    @SuppressWarnings("unchecked")
     private void setFields(CreationContext creationCtx, Object instance) {
-      for (Map.Entry<String, ReflectiveSetter> entry : reflectiveSetters.entrySet()) {
-        String fieldName = entry.getKey();
-        FieldRef<?> ref = refs.get(fieldName);
-        Class<?> fieldType = entry.getValue().getFieldRawType();
-        ReflectiveSetter fieldSetter = entry.getValue();
-        if (fieldSetter == null) {
-          throw new RuntimeException("FieldSetter for field:" + fieldName + " is null.");
-        }
-        if (ref == null) {
-          throw new RuntimeException("FieldRef for field:" + fieldName + " is null.");
-        }
-        if (ref instanceof FieldRef.Boxed) {
-          Object val = creationCtx.get((FieldRef.Boxed<?>) ref);
-          fieldSetter.set(instance, val);
-        } else if (fieldType.equals(int.class)) {
-          int val = creationCtx.getInteger((FieldRef.Primitive<Integer>) ref);
-          fieldSetter.set(instance, val);
-        } else if (fieldType.equals(long.class)) {
-          long val = creationCtx.getLong((FieldRef.Primitive<Long>) ref);
-          fieldSetter.set(instance, val);
-        } else if (fieldType.equals(short.class)) {
-          short val = creationCtx.getShort((FieldRef.Primitive<Short>) ref);
-          fieldSetter.set(instance, val);
-        } else if (fieldType.equals(double.class)) {
-          double val = creationCtx.getDouble((FieldRef.Primitive<Double>) ref);
-          fieldSetter.set(instance, val);
-        } else if (fieldType.equals(float.class)) {
-          float val = creationCtx.getFloat((FieldRef.Primitive<Float>) ref);
-          fieldSetter.set(instance, val);
-        } else if (fieldType.equals(char.class)) {
-          char val = creationCtx.getChar((FieldRef.Primitive<Character>) ref);
-          fieldSetter.set(instance, val);
-        } else if (fieldType.equals(boolean.class)) {
-          boolean val = creationCtx.getBoolean((FieldRef.Primitive<Boolean>) ref);
-          fieldSetter.set(instance, val);
-        } else {
-          throw new EncodingException(fieldType + " not supported.");
-        }
+      for (ReflectiveDecoderFieldContext<?> fieldContext : fieldContexts.values()) {
+        setField(creationCtx, instance, fieldContext);
       }
     }
+
+    @SuppressWarnings("unchecked")
+    private <TField> void setField(
+        CreationContext creationCtx,
+        Object instance,
+        ReflectiveDecoderFieldContext<TField> fieldContext) {
+      FieldRef<TField> ref = fieldContext.getFieldRef();
+      Class<TField> fieldType = fieldContext.getFieldRawType();
+      ReflectiveSetter<TField> fieldSetter = fieldContext.getReflectiveSetter();
+      if (ref instanceof FieldRef.Boxed) {
+        TField val = creationCtx.get((FieldRef.Boxed<TField>) ref);
+        fieldSetter.set(instance, val);
+      } else if (fieldType.equals(int.class)) {
+        int val = creationCtx.getInteger((FieldRef.Primitive<Integer>) ref);
+        fieldSetter.set(instance, (TField) (Integer) val);
+      } else if (fieldType.equals(long.class)) {
+        long val = creationCtx.getLong((FieldRef.Primitive<Long>) ref);
+        fieldSetter.set(instance, (TField) (Long) val);
+      } else if (fieldType.equals(short.class)) {
+        short val = creationCtx.getShort((FieldRef.Primitive<Short>) ref);
+        fieldSetter.set(instance, (TField) (Short) val);
+      } else if (fieldType.equals(double.class)) {
+        double val = creationCtx.getDouble((FieldRef.Primitive<Double>) ref);
+        fieldSetter.set(instance, (TField) (Double) val);
+      } else if (fieldType.equals(float.class)) {
+        float val = creationCtx.getFloat((FieldRef.Primitive<Float>) ref);
+        fieldSetter.set(instance, (TField) (Float) val);
+      } else if (fieldType.equals(char.class)) {
+        char val = creationCtx.getChar((FieldRef.Primitive<Character>) ref);
+        fieldSetter.set(instance, (TField) (Character) val);
+      } else if (fieldType.equals(boolean.class)) {
+        boolean val = creationCtx.getBoolean((FieldRef.Primitive<Boolean>) ref);
+        fieldSetter.set(instance, (TField) (Boolean) val);
+      } else {
+        throw new EncodingException(fieldType + " not supported.");
+      }
+    }
+  }
+
+  private static boolean shouldIncludeSetter(Method method) {
+    if (!method.getName().startsWith("set")) {
+      return false;
+    }
+    if (method.getDeclaringClass().equals(Object.class)) {
+      return false;
+    }
+    if (Modifier.isStatic(method.getModifiers())) {
+      return false;
+    }
+    if (!method.getReturnType().equals(Void.TYPE)) {
+      return false;
+    }
+    if (method.getParameterTypes().length != 1) {
+      return false;
+    }
+    return !method.isAnnotationPresent(Encodable.Ignore.class);
+  }
+
+  private static boolean shouldIncludeField(Field field) {
+    if (field.getDeclaringClass().equals(Object.class)) {
+      return false;
+    }
+    if (!Modifier.isPublic(field.getModifiers())) {
+      return false;
+    }
+    if (Modifier.isStatic(field.getModifiers())) {
+      return false;
+    }
+    if (Modifier.isTransient(field.getModifiers())) {
+      return false;
+    }
+    return !field.isAnnotationPresent(Encodable.Ignore.class);
+  }
+
+  private static String fieldName(Method method) {
+    String methodName = method.getName();
+    final String prefix = "set";
+    if (!methodName.startsWith(prefix)) {
+      throw new IllegalArgumentException("Unknown Bean prefix for method: " + methodName);
+    }
+    return Character.toLowerCase(methodName.charAt(3)) + methodName.substring(4);
   }
 }
