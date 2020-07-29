@@ -30,32 +30,27 @@ import java.util.Set;
 class ReflectiveDecoderHelper {
   private ReflectiveDecoderHelper() {}
 
-  static FieldDescriptor buildFieldDescriptor(Method method) {
-    String decodingKey = decodingKey(method);
-    Annotation[] annotations = method.getDeclaredAnnotations();
-    FieldDescriptor.Builder builder = FieldDescriptor.builder(decodingKey);
-    for (Annotation annotation : annotations) {
-      ExtraProperty extraProperty = annotation.annotationType().getAnnotation(ExtraProperty.class);
-      if (extraProperty != null) {
-        Set<Class<?>> allowedTypes = new HashSet<>(Arrays.asList(extraProperty.allowedTypes()));
-        if (allowedTypes.size() == 0 || allowedTypes.contains(method.getParameterTypes()[0])) {
-          builder.withProperty(annotation);
-        }
-      }
+  static FieldDescriptor buildFieldDescriptor(AccessibleObject accessibleObject) {
+    Class<?> type;
+    if (accessibleObject instanceof Field) {
+      type = ((Field) accessibleObject).getType();
+    } else if (accessibleObject instanceof Method) {
+      type = ((Method) accessibleObject).getParameterTypes()[0];
+    } else {
+      throw new EncodingException("Constructor shouldn't be used to get its decoding key");
     }
-    return builder.build();
-  }
-
-  static FieldDescriptor buildFieldDescriptor(Field field) {
-    String decodingKey = decodingKey(field);
-    Annotation[] annotations = field.getDeclaredAnnotations();
+    String decodingKey = decodingKey(accessibleObject);
+    Annotation[] annotations = accessibleObject.getDeclaredAnnotations();
     FieldDescriptor.Builder builder = FieldDescriptor.builder(decodingKey);
     for (Annotation annotation : annotations) {
       ExtraProperty extraProperty = annotation.annotationType().getAnnotation(ExtraProperty.class);
       if (extraProperty != null) {
         Set<Class<?>> allowedTypes = new HashSet<>(Arrays.asList(extraProperty.allowedTypes()));
-        if (allowedTypes.size() == 0 || allowedTypes.contains(field.getType())) {
+        if (allowedTypes.size() == 0 || allowedTypes.contains(type)) {
           builder.withProperty(annotation);
+        } else {
+          throw new EncodingException(
+              "Type(" + type + ")is not allowed by the annotation(" + annotation + ").");
         }
       }
     }
