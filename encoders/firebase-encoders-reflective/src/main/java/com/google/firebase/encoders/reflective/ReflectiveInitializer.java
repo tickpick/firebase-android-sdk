@@ -26,6 +26,7 @@ final class ReflectiveInitializer {
   static <T> T newInstance(TypeToken.ClassToken<T> classToken) {
     try {
       Constructor<T> constructor = classToken.getRawType().getDeclaredConstructor();
+      constructor.setAccessible(true);
       return constructor.newInstance();
     } catch (NoSuchMethodException e) {
       // TODO: try JVM sun.misc.Unsafe to allocate an instance
@@ -35,11 +36,11 @@ final class ReflectiveInitializer {
               + " does not define a no-argument constructor. If you are using ProGuard, make "
               + "sure these constructors are not stripped.");
     } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
+      throw new EncodingException(e.toString());
     } catch (InstantiationException e) {
-      throw new RuntimeException(e);
+      throw new EncodingException(e.toString());
     } catch (InvocationTargetException e) {
-      throw new RuntimeException(e);
+      throw new EncodingException(e.toString());
     }
   }
 

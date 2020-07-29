@@ -48,7 +48,9 @@ class ReflectiveDecoderFieldContextImp<T> implements ReflectiveDecoderFieldConte
   private ReflectiveDecoderFieldContextImp(Method method) {
     this.fieldDescriptor = buildFieldDescriptor(method);
     this.genericType = method.getGenericParameterTypes()[0];
-    this.rawType = (Class<T>) method.getParameterTypes()[0];
+    @SuppressWarnings("unchecked")
+    Class<T> rawType = (Class<T>) method.getParameterTypes()[0];
+    this.rawType = rawType;
     this.inline = inline(method);
     method.setAccessible(true);
     this.setter =
@@ -66,7 +68,9 @@ class ReflectiveDecoderFieldContextImp<T> implements ReflectiveDecoderFieldConte
   private ReflectiveDecoderFieldContextImp(Field field) {
     this.fieldDescriptor = buildFieldDescriptor(field);
     this.genericType = field.getGenericType();
-    this.rawType = (Class<T>) field.getType();
+    @SuppressWarnings("unchecked")
+    Class<T> rawType = (Class<T>) field.getType();
+    this.rawType = rawType;
     this.inline = inline(field);
     field.setAccessible(true);
     this.setter =
