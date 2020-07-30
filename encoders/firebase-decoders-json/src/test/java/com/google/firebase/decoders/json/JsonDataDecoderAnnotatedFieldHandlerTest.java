@@ -84,7 +84,7 @@ public class JsonDataDecoderAnnotatedFieldHandlerTest {
     }
   }
 
-  private static AnnotatedFieldHandler<Default> defaultHandler =
+  private final static AnnotatedFieldHandler<Default> DEFAULT_HANDLER =
       new AnnotatedFieldHandler<Default>() {
         @Nullable
         @Override
@@ -114,7 +114,7 @@ public class JsonDataDecoderAnnotatedFieldHandlerTest {
     Map<Class<? extends Annotation>, AnnotatedFieldHandler<?>> fieldHandlers = new HashMap<>();
 
     objectDecoders.put(Foo.class, new FooObjectDecoder());
-    fieldHandlers.put(Default.class, defaultHandler);
+    fieldHandlers.put(Default.class, DEFAULT_HANDLER);
 
     JsonDataDecoderContext jsonDataDecoderContext =
         new JsonDataDecoderContext(objectDecoders, fieldHandlers);
@@ -131,7 +131,7 @@ public class JsonDataDecoderAnnotatedFieldHandlerTest {
     DataDecoder decoder =
         new JsonDataDecoderBuilder()
             .register(Foo.class, new FooObjectDecoder())
-            .register(Default.class, defaultHandler)
+            .register(Default.class, DEFAULT_HANDLER)
             .build();
 
     String json = "{\"str\":null}";
