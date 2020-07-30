@@ -50,12 +50,12 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class JsonDataDecoderContext implements DataDecoder {
-  private Map<Class<?>, ObjectDecoder<?>> objectDecoders = new HashMap<>();
   private Map<TypeToken.ClassToken<?>, ObjectDecoderContextImpl<?>> objectDecoderContexts =
       new HashMap<>();
   private Map<TypeToken.ClassToken<?>, TypeCreator<?>> typeCreators = new HashMap<>();
   private JsonReader reader;
-  private final Map<Class<?>, AnnotatedFieldHandler<?>> fieldHandlers;
+  private final Map<Class<?>, ObjectDecoder<?>> objectDecoders;
+  private final Map<Class<? extends Annotation>, AnnotatedFieldHandler<?>> fieldHandlers;
 
   JsonDataDecoderContext(@NonNull Map<Class<?>, ObjectDecoder<?>> objectDecoders) {
     this(objectDecoders, Collections.emptyMap());
@@ -63,7 +63,7 @@ public class JsonDataDecoderContext implements DataDecoder {
 
   JsonDataDecoderContext(
       @NonNull Map<Class<?>, ObjectDecoder<?>> objectDecoders,
-      @NonNull Map<Class<?>, AnnotatedFieldHandler<?>> fieldHandlers) {
+      @NonNull Map<Class<? extends Annotation>, AnnotatedFieldHandler<?>> fieldHandlers) {
     this.objectDecoders = objectDecoders;
     this.fieldHandlers = fieldHandlers;
   }
