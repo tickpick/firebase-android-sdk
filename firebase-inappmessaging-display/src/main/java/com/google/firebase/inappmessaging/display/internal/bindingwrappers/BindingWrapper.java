@@ -104,7 +104,6 @@ public abstract class BindingWrapper {
   public static void setupViewButtonFromModel(
       Button viewButton, com.google.firebase.inappmessaging.model.Button modelButton) {
     String buttonTextHexColor = modelButton.getText().getHexColor();
-    setButtonBgColorFromHex(viewButton, modelButton.getButtonHexColor());
     viewButton.setText(modelButton.getText().getText());
     viewButton.setTextColor(Color.parseColor(buttonTextHexColor));
   }

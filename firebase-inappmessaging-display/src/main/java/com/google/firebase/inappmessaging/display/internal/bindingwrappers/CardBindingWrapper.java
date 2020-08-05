@@ -15,12 +15,15 @@
 package com.google.firebase.inappmessaging.display.internal.bindingwrappers;
 
 import android.graphics.Color;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.webkit.WebSettings;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -144,7 +147,8 @@ public class CardBindingWrapper extends BindingWrapper {
   private void setMessage(CardMessage message) {
     // We can assume we have a title because the CardMessage model enforces it.
     messageTitle.setText(message.getTitle().getText());
-    messageTitle.setTextColor(Color.parseColor(message.getTitle().getHexColor()));
+    messageTitle.setTextColor(Color.BLACK);
+    messageTitle.setTextSize(20.0f);
 
     // Right now we need to check for null, eventually we will make an API change to have hasBody()
     // Additionally right now we have to check for getText. this will be fixed soon.
@@ -152,7 +156,16 @@ public class CardBindingWrapper extends BindingWrapper {
       bodyScroll.setVisibility(View.VISIBLE);
       messageBody.setVisibility(View.VISIBLE);
       messageBody.setText(message.getBody().getText());
-      messageBody.setTextColor(Color.parseColor(message.getBody().getHexColor()));
+      messageBody.setTextColor(Color.rgb(144, 144, 144));
+      messageBody.setTextSize(15.0f);
+
+      Action secondaryAction = cardMessage.getSecondaryAction();
+      if (secondaryAction != null && secondaryAction.getButton() != null) {
+
+      } else {
+        messageTitle.setGravity(Gravity.CENTER);
+        messageBody.setGravity(Gravity.CENTER);
+      }
     } else {
       bodyScroll.setVisibility(View.GONE);
       messageBody.setVisibility(View.GONE);
@@ -165,16 +178,20 @@ public class CardBindingWrapper extends BindingWrapper {
 
     // Primary button will always exist.
     setupViewButtonFromModel(primaryButton, primaryAction.getButton());
+    primaryButton.setTextColor(Color.WHITE);
     // The main display code will override the action listener with a dismiss listener in the case
     // of a missing action url.
     setButtonActionListener(primaryButton, actionListeners.get(primaryAction));
     primaryButton.setVisibility(View.VISIBLE);
+    primaryButton.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.WRAP_CONTENT ));
 
     // Secondary button is optional, eventually this null check will be at the model level.
     if (secondaryAction != null && secondaryAction.getButton() != null) {
       setupViewButtonFromModel(secondaryButton, secondaryAction.getButton());
+      secondaryButton.setTextColor(Color.rgb(144,144, 144));
       setButtonActionListener(secondaryButton, actionListeners.get(secondaryAction));
       secondaryButton.setVisibility(View.VISIBLE);
+      primaryButton.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT ));
     } else {
       secondaryButton.setVisibility(View.GONE);
     }

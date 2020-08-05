@@ -46,6 +46,7 @@
 
         <Button
             android:id="@+id/primary_button"
+            android:background="@drawable/custom_rounded_corners"
             style="@style/FiamUI.Card.ActionBar.Button"
             tools:text="Primary"
             tools:textColor="#000000" />
