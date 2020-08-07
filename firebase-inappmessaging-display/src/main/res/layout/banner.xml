@@ -6,8 +6,8 @@
     android:id="@+id/banner_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:clipChildren="false"
-    android:clipToPadding="false">
+    style="@style/FiamUI.Banner"
+    android:background="@drawable/custom_rounded_layout">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,12 +18,10 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/banner_content_root"
-            style="@style/FiamUI.Banner"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="@dimen/bannerContentWeight"
-            android:background="@drawable/rounded_layout"
             android:clickable="true"
             android:focusable="true"
             android:orientation="vertical"
