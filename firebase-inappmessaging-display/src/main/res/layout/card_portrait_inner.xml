@@ -42,7 +42,9 @@
             android:id="@+id/secondary_button"
             style="@style/FiamUI.Card.ActionBar.Button"
             tools:text="Secondary"
-            tools:textColor="#000000" />
+            android:layout_marginLeft="0dp"
+            tools:textColor="#000000"
+            android:layout_marginStart="0dp" />
 
         <Button
             android:id="@+id/primary_button"

@@ -191,7 +191,10 @@ public class CardBindingWrapper extends BindingWrapper {
       secondaryButton.setTextColor(Color.rgb(144,144, 144));
       setButtonActionListener(secondaryButton, actionListeners.get(secondaryAction));
       secondaryButton.setVisibility(View.VISIBLE);
+//      secondaryButton.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.WRAP_CONTENT ));
       primaryButton.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT ));
+//      primaryButton.setWidth(messageBody.getWidth()-secondaryButton.getWidth());
+//      primaryButton.setPadding(50, 0, 50, 0);
     } else {
       secondaryButton.setVisibility(View.GONE);
     }
