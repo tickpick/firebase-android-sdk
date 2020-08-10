@@ -21,7 +21,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -159,7 +161,8 @@ public class ModalBindingWrapper extends BindingWrapper {
     if (message.getBody() != null && !TextUtils.isEmpty(message.getBody().getText())) {
       bodyScroll.setVisibility(View.VISIBLE);
       messageBody.setVisibility(View.VISIBLE);
-      messageBody.setTextColor(Color.parseColor(message.getBody().getHexColor()));
+//      messageBody.setTextColor(Color.parseColor(message.getBody().getHexColor()));
+      messageBody.setTextColor(Color.rgb(144, 144, 144));
       messageBody.setText(message.getBody().getText());
     } else {
       bodyScroll.setVisibility(View.GONE);
@@ -175,6 +178,8 @@ public class ModalBindingWrapper extends BindingWrapper {
         && !TextUtils.isEmpty(modalAction.getButton().getText().getText())) {
       setupViewButtonFromModel(button, modalAction.getButton());
       setButtonActionListener(button, actionListeners.get(modalMessage.getAction()));
+//      button.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.WRAP_CONTENT ));
+      button.setWidth(messageBody.getMaxWidth());
       button.setVisibility(View.VISIBLE);
     } else {
       button.setVisibility(View.GONE);

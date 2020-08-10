@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:layout_centerInParent="true"
     android:background="@drawable/rounded_layout"
-    android:padding="24dp"
+    android:padding="20dp"
     android:theme="@style/FiamUI"
     fiam:maxHeightPct="@dimen/dialogHeightPct"
     fiam:maxWidthPct="@dimen/dialogWidthPct">
@@ -22,6 +22,14 @@
         android:gravity="center"
         tools:text="Your wishlist items are on sale!!" />
 
+    <com.google.firebase.inappmessaging.display.internal.layout.FiamCardView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/image_wrapper"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        app:cardCornerRadius="12dp"
+        app:contentPadding="0dp">
     <ImageView
         android:id="@+id/image_view"
         style="@style/FiamUI.ModalImageView"
@@ -29,6 +37,8 @@
         android:contentDescription="@string/modal_inner_content_descriptor"
         android:scaleType="centerInside"
         tools:src="@drawable/placeholder_550_350" />
+
+    </com.google.firebase.inappmessaging.display.internal.layout.FiamCardView>
 
     <ScrollView
         android:id="@+id/body_scroll"
@@ -45,9 +55,8 @@
 
     <Button
         android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
+        android:background="@drawable/custom_rounded_corners"
+        style="@style/FiamUI.Modal.Button"
         tools:text="Button"
         tools:textColor="#000000" />
 
