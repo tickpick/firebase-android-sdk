@@ -21,12 +21,12 @@ import static com.google.firebase.firestore.testutil.TestUtil.field;
 import static com.google.firebase.firestore.testutil.TestUtil.filter;
 import static com.google.firebase.firestore.testutil.TestUtil.key;
 import static com.google.firebase.firestore.testutil.TestUtil.map;
+import static com.google.firebase.firestore.testutil.TestUtil.mergeMutation;
 import static com.google.firebase.firestore.testutil.TestUtil.orderBy;
 import static com.google.firebase.firestore.testutil.TestUtil.patchMutation;
 import static com.google.firebase.firestore.testutil.TestUtil.query;
 import static com.google.firebase.firestore.testutil.TestUtil.ref;
 import static com.google.firebase.firestore.testutil.TestUtil.setMutation;
-import static com.google.firebase.firestore.testutil.TestUtil.transformMutation;
 import static com.google.firebase.firestore.testutil.TestUtil.verifyMutation;
 import static com.google.firebase.firestore.testutil.TestUtil.wrap;
 import static java.util.Arrays.asList;
@@ -41,6 +41,7 @@ import com.google.firebase.firestore.core.Bound;
 import com.google.firebase.firestore.core.FieldFilter;
 import com.google.firebase.firestore.core.InFilter;
 import com.google.firebase.firestore.core.KeyFieldFilter;
+import com.google.firebase.firestore.core.NotInFilter;
 import com.google.firebase.firestore.core.Query;
 import com.google.firebase.firestore.local.QueryPurpose;
 import com.google.firebase.firestore.local.TargetData;
@@ -61,7 +62,8 @@ import com.google.firestore.v1.DocumentChange;
 import com.google.firestore.v1.DocumentDelete;
 import com.google.firestore.v1.DocumentMask;
 import com.google.firestore.v1.DocumentRemove;
-import com.google.firestore.v1.DocumentTransform;
+import com.google.firestore.v1.DocumentTransform.FieldTransform;
+import com.google.firestore.v1.DocumentTransform.FieldTransform.ServerValue;
 import com.google.firestore.v1.ListenResponse;
 import com.google.firestore.v1.MapValue;
 import com.google.firestore.v1.Precondition;
@@ -83,9 +85,11 @@ import com.google.firestore.v1.Value;
 import com.google.firestore.v1.Write;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Int32Value;
+import com.google.protobuf.NullValue;
 import com.google.protobuf.Timestamp;
 import com.google.type.LatLng;
 import io.grpc.Status;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -359,7 +363,7 @@ public final class RemoteSerializerTest {
   @Test
   public void testEncodesPatchMutationWithFieldMask() {
     Mutation mutation =
-        patchMutation("docs/1", map("key", "value", "key2", true), asList(field("key")));
+        mergeMutation("docs/1", map("key", "value", "key2", true), asList(field("key")));
 
     Write expected =
         Write.newBuilder()
@@ -375,64 +379,98 @@ public final class RemoteSerializerTest {
   }
 
   @Test
-  public void testEncodesServerTimestampTransformMutation() {
+  public void testEncodesServerTimestampMutation() {
     Mutation mutation =
-        transformMutation(
+        setMutation(
+            "docs/1",
+            map(
+                "a",
+                com.google.firebase.firestore.FieldValue.serverTimestamp(),
+                "bar",
+                com.google.firebase.firestore.FieldValue.serverTimestamp()));
+    Write expected =
+        Write.newBuilder()
+            .setUpdate(Document.newBuilder().setName("projects/p/databases/d/documents/docs/1"))
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("a")
+                    .setSetToServerValue(ServerValue.REQUEST_TIME))
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("bar")
+                    .setSetToServerValue(ServerValue.REQUEST_TIME))
+            .build();
+    assertRoundTripForMutation(mutation, expected);
+
+    mutation =
+        patchMutation(
             "docs/1",
             map(
                 "a",
                 com.google.firebase.firestore.FieldValue.serverTimestamp(),
                 "bar.baz",
                 com.google.firebase.firestore.FieldValue.serverTimestamp()));
-
-    Write expected =
+    expected =
         Write.newBuilder()
-            .setTransform(
-                DocumentTransform.newBuilder()
-                    .setDocument("projects/p/databases/d/documents/docs/1")
-                    .addFieldTransforms(
-                        DocumentTransform.FieldTransform.newBuilder()
-                            .setFieldPath("a")
-                            .setSetToServerValue(
-                                DocumentTransform.FieldTransform.ServerValue.REQUEST_TIME))
-                    .addFieldTransforms(
-                        DocumentTransform.FieldTransform.newBuilder()
-                            .setFieldPath("bar.baz")
-                            .setSetToServerValue(
-                                DocumentTransform.FieldTransform.ServerValue.REQUEST_TIME)))
+            .setUpdate(Document.newBuilder().setName("projects/p/databases/d/documents/docs/1"))
+            .setUpdateMask(DocumentMask.newBuilder().build())
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("a")
+                    .setSetToServerValue(ServerValue.REQUEST_TIME))
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("bar.baz")
+                    .setSetToServerValue(ServerValue.REQUEST_TIME))
             .setCurrentDocument(Precondition.newBuilder().setExists(true))
             .build();
-
     assertRoundTripForMutation(mutation, expected);
   }
 
   @Test
-  public void testEncodesArrayTransformMutations() {
+  public void testEncodesArrayMutations() {
     Mutation mutation =
-        transformMutation(
+        setMutation(
+            "docs/1",
+            map(
+                "a", com.google.firebase.firestore.FieldValue.arrayUnion("a", 2),
+                "bar", com.google.firebase.firestore.FieldValue.arrayRemove(map("x", 1))));
+    Write expected =
+        Write.newBuilder()
+            .setUpdate(Document.newBuilder().setName("projects/p/databases/d/documents/docs/1"))
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("a")
+                    .setAppendMissingElements(
+                        ArrayValue.newBuilder().addValues(wrap("a")).addValues(wrap(2))))
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("bar")
+                    .setRemoveAllFromArray(ArrayValue.newBuilder().addValues(wrap(map("x", 1)))))
+            .build();
+    assertRoundTripForMutation(mutation, expected);
+
+    mutation =
+        patchMutation(
             "docs/1",
             map(
                 "a", com.google.firebase.firestore.FieldValue.arrayUnion("a", 2),
                 "bar.baz", com.google.firebase.firestore.FieldValue.arrayRemove(map("x", 1))));
-
-    Write expected =
+    expected =
         Write.newBuilder()
-            .setTransform(
-                DocumentTransform.newBuilder()
-                    .setDocument("projects/p/databases/d/documents/docs/1")
-                    .addFieldTransforms(
-                        DocumentTransform.FieldTransform.newBuilder()
-                            .setFieldPath("a")
-                            .setAppendMissingElements(
-                                ArrayValue.newBuilder().addValues(wrap("a")).addValues(wrap(2))))
-                    .addFieldTransforms(
-                        DocumentTransform.FieldTransform.newBuilder()
-                            .setFieldPath("bar.baz")
-                            .setRemoveAllFromArray(
-                                ArrayValue.newBuilder().addValues(wrap(map("x", 1))))))
+            .setUpdate(Document.newBuilder().setName("projects/p/databases/d/documents/docs/1"))
+            .setUpdateMask(DocumentMask.newBuilder().build())
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("a")
+                    .setAppendMissingElements(
+                        ArrayValue.newBuilder().addValues(wrap("a")).addValues(wrap(2))))
+            .addUpdateTransforms(
+                FieldTransform.newBuilder()
+                    .setFieldPath("bar.baz")
+                    .setRemoveAllFromArray(ArrayValue.newBuilder().addValues(wrap(map("x", 1)))))
             .setCurrentDocument(Precondition.newBuilder().setExists(true))
             .build();
-
     assertRoundTripForMutation(mutation, expected);
   }
 
@@ -663,6 +701,74 @@ public final class RemoteSerializerTest {
   }
 
   @Test
+  public void testNotEqualSerialization() {
+    FieldFilter inputFilter = filter("field", "!=", 42);
+    StructuredQuery.Filter apiFilter = serializer.encodeUnaryOrFieldFilter(inputFilter);
+
+    StructuredQuery.Filter expectedFilter =
+        Filter.newBuilder()
+            .setFieldFilter(
+                StructuredQuery.FieldFilter.newBuilder()
+                    .setField(FieldReference.newBuilder().setFieldPath("field"))
+                    .setOp(Operator.NOT_EQUAL)
+                    .setValue(Value.newBuilder().setIntegerValue(42))
+                    .build())
+            .build();
+
+    assertEquals(expectedFilter, apiFilter);
+    FieldFilter roundTripped = serializer.decodeFieldFilter(apiFilter.getFieldFilter());
+    assertEquals(roundTripped, inputFilter);
+  }
+
+  @Test
+  public void testNotInSerialization() {
+    FieldFilter inputFilter = filter("field", "not-in", asList(42));
+    StructuredQuery.Filter apiFilter = serializer.encodeUnaryOrFieldFilter(inputFilter);
+
+    ArrayValue.Builder notInFilterValue =
+        ArrayValue.newBuilder().addValues(Value.newBuilder().setIntegerValue(42));
+    StructuredQuery.Filter expectedFilter =
+        Filter.newBuilder()
+            .setFieldFilter(
+                StructuredQuery.FieldFilter.newBuilder()
+                    .setField(FieldReference.newBuilder().setFieldPath("field"))
+                    .setOp(Operator.NOT_IN)
+                    .setValue(Value.newBuilder().setArrayValue(notInFilterValue))
+                    .build())
+            .build();
+
+    assertEquals(expectedFilter, apiFilter);
+    FieldFilter roundTripped = serializer.decodeFieldFilter(apiFilter.getFieldFilter());
+    assertEquals(roundTripped, inputFilter);
+    assertTrue(roundTripped instanceof NotInFilter);
+  }
+
+  @Test
+  public void testNotInWithNullSerialization() {
+    List<Object> nullArray = new ArrayList<>();
+    nullArray.add(null);
+    FieldFilter inputFilter = filter("field", "not-in", nullArray);
+    StructuredQuery.Filter apiFilter = serializer.encodeUnaryOrFieldFilter(inputFilter);
+
+    ArrayValue.Builder notInFilterValue =
+        ArrayValue.newBuilder().addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE));
+    StructuredQuery.Filter expectedFilter =
+        Filter.newBuilder()
+            .setFieldFilter(
+                StructuredQuery.FieldFilter.newBuilder()
+                    .setField(FieldReference.newBuilder().setFieldPath("field"))
+                    .setOp(Operator.NOT_IN)
+                    .setValue(Value.newBuilder().setArrayValue(notInFilterValue))
+                    .build())
+            .build();
+
+    assertEquals(expectedFilter, apiFilter);
+    FieldFilter roundTripped = serializer.decodeFieldFilter(apiFilter.getFieldFilter());
+    assertEquals(roundTripped, inputFilter);
+    assertTrue(roundTripped instanceof NotInFilter);
+  }
+
+  @Test
   public void testArrayContainsAnySerialization() {
     FieldFilter inputFilter = filter("field", "array-contains-any", asList(42));
     StructuredQuery.Filter apiFilter = serializer.encodeUnaryOrFieldFilter(inputFilter);
@@ -715,17 +821,28 @@ public final class RemoteSerializerTest {
 
   @Test
   public void testEncodesNullFilter() {
-    unaryFilterTest(null, UnaryFilter.Operator.IS_NULL);
+    unaryFilterTest("==", null, UnaryFilter.Operator.IS_NULL);
   }
 
   @Test
   public void testEncodesNaNFilter() {
-    unaryFilterTest(Double.NaN, UnaryFilter.Operator.IS_NAN);
+    unaryFilterTest("==", Double.NaN, UnaryFilter.Operator.IS_NAN);
   }
 
-  private void unaryFilterTest(Object equalityValue, UnaryFilter.Operator unaryOperator) {
+  @Test
+  public void testEncodesNotNaNFilter() {
+    unaryFilterTest("!=", Double.NaN, UnaryFilter.Operator.IS_NOT_NAN);
+  }
+
+  @Test
+  public void testEncodesNotNullFilter() {
+    unaryFilterTest("!=", null, UnaryFilter.Operator.IS_NOT_NULL);
+  }
+
+  private void unaryFilterTest(
+      String op, Object equalityValue, UnaryFilter.Operator unaryOperator) {
     Query q =
-        Query.atPath(ResourcePath.fromString("docs")).filter(filter("prop", "==", equalityValue));
+        Query.atPath(ResourcePath.fromString("docs")).filter(filter("prop", op, equalityValue));
     Target actual = serializer.encodeTarget(wrapTargetData(q));
 
     StructuredQuery.Builder structuredQueryBuilder =
@@ -736,8 +853,17 @@ public final class RemoteSerializerTest {
                     .setUnaryFilter(
                         UnaryFilter.newBuilder()
                             .setField(FieldReference.newBuilder().setFieldPath("prop"))
-                            .setOp(unaryOperator)))
-            .addOrderBy(defaultKeyOrder());
+                            .setOp(unaryOperator)));
+
+    // Add extra ORDER_BY field for '!=' since it is an inequality.
+    if (op.equals("!=")) {
+      structuredQueryBuilder.addOrderBy(
+          Order.newBuilder()
+              .setDirection(Direction.ASCENDING)
+              .setField(FieldReference.newBuilder().setFieldPath("prop")));
+    }
+    structuredQueryBuilder.addOrderBy(defaultKeyOrder());
+
     QueryTarget.Builder queryBuilder =
         QueryTarget.newBuilder()
             .setParent("projects/p/databases/d/documents")

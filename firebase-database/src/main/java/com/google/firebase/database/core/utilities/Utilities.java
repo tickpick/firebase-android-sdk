@@ -16,10 +16,12 @@ package com.google.firebase.database.core.utilities;
 
 import android.net.Uri;
 import android.util.Base64;
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.firebase.database.BuildConfig;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
@@ -28,6 +30,7 @@ import com.google.firebase.database.core.RepoInfo;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 import java.util.Map;
 
 public class Utilities {
@@ -50,11 +53,11 @@ public class Utilities {
       String namespace = uri.getQueryParameter("ns");
       if (namespace == null) {
         String[] parts = host.split("\\.", -1);
-        namespace = parts[0].toLowerCase();
+        namespace = parts[0].toLowerCase(Locale.US);
       }
 
       RepoInfo repoInfo = new RepoInfo();
-      repoInfo.host = host.toLowerCase();
+      repoInfo.host = host.toLowerCase(Locale.US);
       int port = uri.getPort();
       if (port != -1) {
         repoInfo.secure = scheme.equals("https") || scheme.equals("wss");
@@ -230,7 +233,11 @@ public class Utilities {
 
   public static void hardAssert(boolean condition, String message) {
     if (!condition) {
-      throw new AssertionError("hardAssert failed: " + message);
+      if (BuildConfig.DEBUG) {
+        throw new AssertionError("hardAssert failed: " + message);
+      } else {
+        Log.w("FirebaseDatabase", "Assertion failed: " + message);
+      }
     }
   }
 

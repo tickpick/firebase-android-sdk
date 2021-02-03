@@ -190,7 +190,7 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
   private Set<DocumentKey> expectedEnqueuedLimboDocs;
 
   /** Set of expected active targets, keyed by target ID. */
-  private Map<Integer, Pair<List<TargetData>, String>> expectedActiveTargets;
+  private Map<Integer, List<TargetData>> expectedActiveTargets;
 
   /**
    * The writes that have been sent to the SyncEngine via {@link SyncEngine#writeMutations} but not
@@ -213,6 +213,7 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
       Collections.synchronizedList(new ArrayList<>());
   private final List<DocumentKey> rejectedDocs = Collections.synchronizedList(new ArrayList<>());
   private List<EventListener<Void>> snapshotsInSyncListeners;
+  private int waitForPendingWriteEvents = 0;
   private int snapshotsInSyncEvents = 0;
 
   /** An executor to use for test callbacks. */
@@ -465,9 +466,9 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
   // Methods for doing the steps of the spec test.
   //
 
-  private void doListen(JSONArray listenSpec) throws Exception {
-    int expectedId = listenSpec.getInt(0);
-    Query query = parseQuery(listenSpec.get(1));
+  private void doListen(JSONObject listenSpec) throws Exception {
+    int expectedId = listenSpec.getInt("targetId");
+    Query query = parseQuery(listenSpec.getJSONObject("query"));
     // TODO: Allow customizing listen options in spec tests
     ListenOptions options = new ListenOptions();
     options.includeDocumentMetadataChanges = true;
@@ -532,6 +533,14 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
 
   private void doDelete(String key) throws Exception {
     doMutation(deleteMutation(key));
+  }
+
+  private void doWaitForPendingWrites() {
+    final TaskCompletionSource<Void> source = new TaskCompletionSource<>();
+    source
+        .getTask()
+        .addOnSuccessListener(backgroundExecutor, result -> waitForPendingWriteEvents += 1);
+    syncEngine.registerPendingWritesTask(source);
   }
 
   private void doAddSnapshotsInSyncListener() {
@@ -775,7 +784,7 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
     }
 
     if (step.has("userListen")) {
-      doListen(step.getJSONArray("userListen"));
+      doListen(step.getJSONObject("userListen"));
     } else if (step.has("userUnlisten")) {
       doUnlisten(step.getJSONArray("userUnlisten"));
     } else if (step.has("userSet")) {
@@ -813,6 +822,8 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
       doWriteAck(step.getJSONObject("writeAck"));
     } else if (step.has("failWrite")) {
       doFailWrite(step.getJSONObject("failWrite"));
+    } else if (step.has("waitForPendingWrites")) {
+      doWaitForPendingWrites();
     } else if (step.has("runTimer")) {
       doRunTimer(step.getString("runTimer"));
     } else if (step.has("enableNetwork")) {
@@ -952,10 +963,9 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
           int targetId = Integer.parseInt(targetIdString);
 
           JSONObject queryDataJson = activeTargets.getJSONObject(targetIdString);
-          String resumeToken = queryDataJson.getString("resumeToken");
           JSONArray queryArrayJson = queryDataJson.getJSONArray("queries");
 
-          expectedActiveTargets.put(targetId, new Pair<>(new ArrayList<>(), resumeToken));
+          expectedActiveTargets.put(targetId, new ArrayList<>());
           for (int i = 0; i < queryArrayJson.length(); i++) {
             Query query = parseQuery(queryArrayJson.getJSONObject(i));
             // TODO: populate the purpose of the target once it's possible to encode that in the
@@ -963,10 +973,19 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
             // always the right value.
             TargetData targetData =
                 new TargetData(
-                        query.toTarget(), targetId, ARBITRARY_SEQUENCE_NUMBER, QueryPurpose.LISTEN)
-                    .withResumeToken(ByteString.copyFromUtf8(resumeToken), SnapshotVersion.NONE);
+                    query.toTarget(), targetId, ARBITRARY_SEQUENCE_NUMBER, QueryPurpose.LISTEN);
+            if (queryDataJson.has("resumeToken")) {
+              targetData =
+                  targetData.withResumeToken(
+                      ByteString.copyFromUtf8(queryDataJson.getString("resumeToken")),
+                      SnapshotVersion.NONE);
+            } else {
+              targetData =
+                  targetData.withResumeToken(
+                      ByteString.EMPTY, version(queryDataJson.getInt("readTime")));
+            }
 
-            expectedActiveTargets.get(targetId).first.add(targetData);
+            expectedActiveTargets.get(targetId).add(targetData);
           }
         }
       }
@@ -984,6 +1003,11 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
   private void validateSnapshotsInSyncEvents(int expectedCount) {
     assertEquals(expectedCount, snapshotsInSyncEvents);
     snapshotsInSyncEvents = 0;
+  }
+
+  private void validateWaitForPendingWritesEvents(int expectedCount) {
+    assertEquals(expectedCount, waitForPendingWriteEvents);
+    waitForPendingWriteEvents = 0;
   }
 
   private void validateUserCallbacks(@Nullable JSONObject expected) throws JSONException {
@@ -1079,13 +1103,12 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
     // Create a copy so we can modify it in tests
     Map<Integer, TargetData> actualTargets = new HashMap<>(datastore.activeTargets());
 
-    for (Map.Entry<Integer, Pair<List<TargetData>, String>> expected :
-        expectedActiveTargets.entrySet()) {
+    for (Map.Entry<Integer, List<TargetData>> expected : expectedActiveTargets.entrySet()) {
       assertTrue(
           "Expected active target not found: " + expected.getValue(),
           actualTargets.containsKey(expected.getKey()));
 
-      List<TargetData> expectedQueries = expected.getValue().first;
+      List<TargetData> expectedQueries = expected.getValue();
       TargetData expectedTarget = expectedQueries.get(0);
       TargetData actualTarget = actualTargets.get(expected.getKey());
 
@@ -1116,6 +1139,8 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
         step.remove("expectedState");
         int expectedSnapshotsInSyncEvents = step.optInt("expectedSnapshotsInSyncEvents");
         step.remove("expectedSnapshotsInSyncEvents");
+        int expectedWaitForPendingWritesEvents = step.optInt("expectedWaitForPendingWritesEvents");
+        step.remove("expectedWaitForPendingWritesEvents");
 
         log("    Doing step " + step);
         doStep(step);
@@ -1133,6 +1158,7 @@ public abstract class SpecTestCase implements RemoteStoreCallback {
         }
         validateExpectedState(expectedState);
         validateSnapshotsInSyncEvents(expectedSnapshotsInSyncEvents);
+        validateWaitForPendingWritesEvents(expectedWaitForPendingWritesEvents);
         events.clear();
         acknowledgedDocs.clear();
         rejectedDocs.clear();
