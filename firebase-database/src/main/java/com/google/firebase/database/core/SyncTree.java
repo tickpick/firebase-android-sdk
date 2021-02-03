@@ -16,7 +16,10 @@ package com.google.firebase.database.core;
 
 import static com.google.firebase.database.core.utilities.Utilities.hardAssert;
 
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.InternalHelpers;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.annotations.NotNull;
 import com.google.firebase.database.annotations.Nullable;
 import com.google.firebase.database.collection.LLRBNode;
@@ -348,11 +351,11 @@ public class SyncTree {
       Path path, List<RangeMerge> rangeMerges, Tag tag) {
     QuerySpec query = queryForTag(tag);
     if (query != null) {
-      assert path.equals(query.getPath());
+      hardAssert(path.equals(query.getPath()));
       SyncPoint syncPoint = syncPointTree.get(query.getPath());
-      assert syncPoint != null : "Missing sync point for query tag that we're tracking";
+      hardAssert(syncPoint != null, "Missing sync point for query tag that we're tracking");
       View view = syncPoint.viewForQuery(query);
-      assert view != null : "Missing view for query tag that we're tracking";
+      hardAssert(view != null, "Missing view for query tag that we're tracking");
       Node serverNode = view.getServerCache();
       for (RangeMerge merge : rangeMerges) {
         serverNode = merge.applyTo(serverNode);
@@ -400,7 +403,7 @@ public class SyncTree {
   private List<? extends Event> applyTaggedOperation(QuerySpec query, Operation operation) {
     Path queryPath = query.getPath();
     SyncPoint syncPoint = syncPointTree.get(queryPath);
-    assert syncPoint != null : "Missing sync point for query tag that we're tracking";
+    hardAssert(syncPoint != null, "Missing sync point for query tag that we're tracking");
     WriteTreeRef writesCache = pendingWriteTree.childWrites(queryPath);
     return syncPoint.applyOperation(operation, writesCache, /*serverCache*/ null);
   }
@@ -452,6 +455,33 @@ public class SyncTree {
             }
           }
         });
+  }
+
+  public void setQueryActive(QuerySpec query) {
+    persistenceManager.runInTransaction(
+        new Callable<Void>() {
+          @Override
+          public Void call() {
+            persistenceManager.setQueryActive(query);
+            return null;
+          }
+        });
+  }
+
+  public void setQueryInactive(QuerySpec query) {
+    persistenceManager.runInTransaction(
+        new Callable<Void>() {
+          @Override
+          public Void call() {
+            persistenceManager.setQueryInactive(query);
+            return null;
+          }
+        });
+  }
+
+  public DataSnapshot persistenceServerCache(Query query) {
+    return InternalHelpers.createDataSnapshot(
+        query.getRef(), persistenceManager.serverCache(query.getSpec()).getIndexedNode());
   }
 
   /** Add an event callback for the specified query. */
@@ -542,7 +572,8 @@ public class SyncTree {
             boolean viewAlreadyExists = syncPoint.viewExistsForQuery(query);
             if (!viewAlreadyExists && !query.loadsAllData()) {
               // We need to track a tag for this query
-              assert !queryToTagMap.containsKey(query) : "View does not exist but we have a tag";
+              hardAssert(
+                  !queryToTagMap.containsKey(query), "View does not exist but we have a tag");
               Tag tag = getNextQueryTag();
               queryToTagMap.put(query, tag);
               tagToQueryMap.put(tag, query);
@@ -663,7 +694,7 @@ public class SyncTree {
                 } else {
                   for (QuerySpec queryToRemove : removed) {
                     Tag tag = tagForQuery(queryToRemove);
-                    assert tag != null;
+                    hardAssert(tag != null);
                     listenProvider.stopListening(queryForListening(queryToRemove), tag);
                   }
                 }
@@ -770,7 +801,7 @@ public class SyncTree {
       if (!removedQuery.loadsAllData()) {
         // We should have a tag for this
         Tag tag = this.tagForQuery(removedQuery);
-        assert tag != null;
+        hardAssert(tag != null);
         this.queryToTagMap.remove(removedQuery);
         this.tagToQueryMap.remove(tag);
       }
@@ -798,8 +829,9 @@ public class SyncTree {
     // The root of this subtree has our query. We're here because we definitely need to send a
     // listen for that, but we may need to shadow other listens as well.
     if (tag != null) {
-      assert !subtree.getValue().hasCompleteView()
-          : "If we're adding a query, it shouldn't be shadowed";
+      hardAssert(
+          !subtree.getValue().hasCompleteView(),
+          "If we're adding a query, it shouldn't be shadowed");
     } else {
       // Shadow everything at or below this location, this is a default listener.
       subtree.foreach(
@@ -831,6 +863,20 @@ public class SyncTree {
   /** Return the tag associated with the given query. */
   private Tag tagForQuery(QuerySpec query) {
     return this.queryToTagMap.get(query);
+  }
+
+  /** Similar to calcCompleteEventCache, but doesn't skip the root view cache. */
+  public Node calcCompleteEventCacheFromRoot(Path path, List<Long> writeIdsToExclude) {
+    SyncPoint currentSyncPoint = syncPointTree.getValue();
+    Node serverCache = null;
+    if (currentSyncPoint != null) {
+      serverCache = currentSyncPoint.getCompleteServerCache(Path.getEmptyPath());
+    }
+    if (serverCache != null) {
+      return this.pendingWriteTree.calcCompleteEventCache(
+          path, serverCache, writeIdsToExclude, true);
+    }
+    return calcCompleteEventCache(path, writeIdsToExclude);
   }
 
   /**

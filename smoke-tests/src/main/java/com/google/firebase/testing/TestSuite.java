@@ -30,7 +30,6 @@ import org.junit.runners.Suite;
   FirestoreTest.class,
   FunctionsTest.class,
   RemoteConfigTest.class,
-  SmartReplyTest.class,
   StorageTest.class,
 })
 public final class TestSuite {}

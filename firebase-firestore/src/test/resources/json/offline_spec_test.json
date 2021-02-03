@@ -10,16 +10,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -94,6 +94,74 @@
       }
     ]
   },
+  "Client stays offline during credential change": {
+    "describeName": "Offline:",
+    "itName": "Client stays offline during credential change",
+    "tags": [
+    ],
+    "config": {
+      "numClients": 1,
+      "useGarbageCollection": true
+    },
+    "steps": [
+      {
+        "enableNetwork": false,
+        "expectedState": {
+          "activeLimboDocs": [
+          ],
+          "activeTargets": {
+          },
+          "enqueuedLimboDocs": [
+          ]
+        }
+      },
+      {
+        "changeUser": "user1"
+      },
+      {
+        "userListen": {
+          "query": {
+            "filters": [
+            ],
+            "orderBys": [
+            ],
+            "path": "collection"
+          },
+          "targetId": 2
+        },
+        "expectedSnapshotEvents": [
+          {
+            "errorCode": 0,
+            "fromCache": true,
+            "hasPendingWrites": false,
+            "query": {
+              "filters": [
+              ],
+              "orderBys": [
+              ],
+              "path": "collection"
+            }
+          }
+        ],
+        "expectedState": {
+          "activeTargets": {
+            "2": {
+              "queries": [
+                {
+                  "filters": [
+                  ],
+                  "orderBys": [
+                  ],
+                  "path": "collection"
+                }
+              ],
+              "resumeToken": ""
+            }
+          }
+        }
+      }
+    ]
+  },
   "Empty queries are resolved if client goes offline": {
     "describeName": "Offline:",
     "itName": "Empty queries are resolved if client goes offline",
@@ -105,16 +173,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -186,16 +254,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -231,16 +299,16 @@
         ]
       },
       {
-        "userListen": [
-          4,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection2"
-          }
-        ],
+          },
+          "targetId": 4
+        },
         "expectedSnapshotEvents": [
           {
             "errorCode": 0,
@@ -297,16 +365,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -348,16 +416,16 @@
         ]
       },
       {
-        "userListen": [
-          4,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection2"
-          }
-        ],
+          },
+          "targetId": 4
+        },
         "expectedSnapshotEvents": [
           {
             "errorCode": 0,
@@ -414,16 +482,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -613,16 +681,16 @@
         }
       },
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "errorCode": 0,
@@ -671,16 +739,16 @@
         }
       },
       {
-        "userListen": [
-          4,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 4
+        },
         "expectedSnapshotEvents": [
           {
             "errorCode": 0,
@@ -741,16 +809,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -939,16 +1007,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -1262,16 +1330,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -1338,16 +1406,16 @@
         }
       },
       {
-        "userListen": [
-          4,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 4
+        },
         "expectedState": {
           "activeTargets": {
             "4": {

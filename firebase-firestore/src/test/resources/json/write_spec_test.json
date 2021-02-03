@@ -10,16 +10,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -220,16 +220,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -481,16 +481,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -713,16 +713,16 @@
         }
       },
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -780,16 +780,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -966,16 +966,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/doc"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -1192,16 +1192,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -1402,16 +1402,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -1698,16 +1698,16 @@
         ]
       },
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -2093,16 +2093,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -2193,16 +2193,16 @@
       },
       {
         "clientIndex": 1,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -2423,16 +2423,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -2483,16 +2483,16 @@
       },
       {
         "clientIndex": 1,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -2620,16 +2620,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -2700,16 +2700,16 @@
       },
       {
         "clientIndex": 1,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "errorCode": 0,
@@ -2929,16 +2929,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -3009,16 +3009,16 @@
       },
       {
         "clientIndex": 1,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "errorCode": 0,
@@ -3211,16 +3211,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -3327,16 +3327,16 @@
       },
       {
         "clientIndex": 1,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -3532,16 +3532,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -4874,16 +4874,16 @@
         ]
       },
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -4947,16 +4947,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -5024,16 +5024,16 @@
       },
       {
         "clientIndex": 1,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -5409,16 +5409,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -5942,6 +5942,441 @@
             ]
           }
         }
+      }
+    ]
+  },
+  "Wait for pending writes resolves after write acknowledgment": {
+    "describeName": "Writes:",
+    "itName": "Wait for pending writes resolves after write acknowledgment",
+    "tags": [
+    ],
+    "config": {
+      "numClients": 1,
+      "useGarbageCollection": true
+    },
+    "steps": [
+      {
+        "userSet": [
+          "collection/a",
+          {
+            "k": "a"
+          }
+        ]
+      },
+      {
+        "userSet": [
+          "collection/b",
+          {
+            "k": "b"
+          }
+        ]
+      },
+      {
+        "waitForPendingWrites": true
+      },
+      {
+        "writeAck": {
+          "version": 1001
+        },
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/a"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        }
+      },
+      {
+        "failWrite": {
+          "error": {
+            "code": 9
+          }
+        },
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+            ],
+            "rejectedDocs": [
+              "collection/b"
+            ]
+          }
+        },
+        "expectedWaitForPendingWritesEvents": 1
+      }
+    ]
+  },
+  "Wait for pending writes resolves for write in secondary tab": {
+    "describeName": "Writes:",
+    "itName": "Wait for pending writes resolves for write in secondary tab",
+    "tags": [
+      "multi-client"
+    ],
+    "config": {
+      "numClients": 2,
+      "useGarbageCollection": false
+    },
+    "steps": [
+      {
+        "clientIndex": 0,
+        "drainQueue": true,
+        "expectedState": {
+          "isPrimary": true
+        }
+      },
+      {
+        "clientIndex": 1,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 1,
+        "userSet": [
+          "collection/a",
+          {
+            "k": "a"
+          }
+        ]
+      },
+      {
+        "clientIndex": 1,
+        "waitForPendingWrites": true
+      },
+      {
+        "clientIndex": 0,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 0,
+        "writeAck": {
+          "version": 1001
+        }
+      },
+      {
+        "clientIndex": 1,
+        "drainQueue": true,
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/a"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        },
+        "expectedWaitForPendingWritesEvents": 1
+      }
+    ]
+  },
+  "Wait for pending writes resolves if another write is issued": {
+    "describeName": "Writes:",
+    "itName": "Wait for pending writes resolves if another write is issued",
+    "tags": [
+    ],
+    "config": {
+      "numClients": 1,
+      "useGarbageCollection": true
+    },
+    "steps": [
+      {
+        "userSet": [
+          "collection/a",
+          {
+            "k": "a"
+          }
+        ]
+      },
+      {
+        "waitForPendingWrites": true
+      },
+      {
+        "userSet": [
+          "collection/b",
+          {
+            "k": "b"
+          }
+        ]
+      },
+      {
+        "writeAck": {
+          "version": 1001
+        },
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/a"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        },
+        "expectedWaitForPendingWritesEvents": 1
+      },
+      {
+        "writeAck": {
+          "version": 1002
+        },
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/b"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "Wait for pending writes resolves independently for different tabs": {
+    "describeName": "Writes:",
+    "itName": "Wait for pending writes resolves independently for different tabs",
+    "tags": [
+      "multi-client"
+    ],
+    "config": {
+      "numClients": 3,
+      "useGarbageCollection": false
+    },
+    "steps": [
+      {
+        "clientIndex": 0,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 0,
+        "userSet": [
+          "collection/a",
+          {
+            "k": "a"
+          }
+        ]
+      },
+      {
+        "clientIndex": 0,
+        "waitForPendingWrites": true
+      },
+      {
+        "clientIndex": 1,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 1,
+        "userSet": [
+          "collection/b",
+          {
+            "k": "b"
+          }
+        ]
+      },
+      {
+        "clientIndex": 1,
+        "waitForPendingWrites": true
+      },
+      {
+        "clientIndex": 2,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 2,
+        "userSet": [
+          "collection/c",
+          {
+            "k": "c"
+          }
+        ]
+      },
+      {
+        "clientIndex": 2,
+        "waitForPendingWrites": true
+      },
+      {
+        "clientIndex": 0,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 0,
+        "writeAck": {
+          "version": 1001
+        },
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/a"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        },
+        "expectedWaitForPendingWritesEvents": 1
+      },
+      {
+        "clientIndex": 1,
+        "drainQueue": true,
+        "expectedWaitForPendingWritesEvents": 0
+      },
+      {
+        "clientIndex": 2,
+        "drainQueue": true,
+        "expectedWaitForPendingWritesEvents": 0
+      },
+      {
+        "clientIndex": 0,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 0,
+        "writeAck": {
+          "version": 1002
+        },
+        "expectedWaitForPendingWritesEvents": 0
+      },
+      {
+        "clientIndex": 1,
+        "drainQueue": true,
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/b"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        },
+        "expectedWaitForPendingWritesEvents": 1
+      },
+      {
+        "clientIndex": 2,
+        "drainQueue": true,
+        "expectedWaitForPendingWritesEvents": 0
+      },
+      {
+        "clientIndex": 0,
+        "drainQueue": true
+      },
+      {
+        "clientIndex": 0,
+        "writeAck": {
+          "version": 1003
+        },
+        "expectedWaitForPendingWritesEvents": 0
+      },
+      {
+        "clientIndex": 1,
+        "drainQueue": true,
+        "expectedWaitForPendingWritesEvents": 0
+      },
+      {
+        "clientIndex": 2,
+        "drainQueue": true,
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/c"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        },
+        "expectedWaitForPendingWritesEvents": 1
+      }
+    ]
+  },
+  "Wait for pending writes resolves multiple times": {
+    "describeName": "Writes:",
+    "itName": "Wait for pending writes resolves multiple times",
+    "tags": [
+    ],
+    "config": {
+      "numClients": 1,
+      "useGarbageCollection": true
+    },
+    "steps": [
+      {
+        "userSet": [
+          "collection/a",
+          {
+            "k": "a"
+          }
+        ]
+      },
+      {
+        "waitForPendingWrites": true
+      },
+      {
+        "waitForPendingWrites": true
+      },
+      {
+        "writeAck": {
+          "version": 1001
+        },
+        "expectedState": {
+          "userCallbacks": {
+            "acknowledgedDocs": [
+              "collection/a"
+            ],
+            "rejectedDocs": [
+            ]
+          }
+        },
+        "expectedWaitForPendingWritesEvents": 2
+      }
+    ]
+  },
+  "Wait for pending writes resolves with no writes": {
+    "describeName": "Writes:",
+    "itName": "Wait for pending writes resolves with no writes",
+    "tags": [
+    ],
+    "config": {
+      "numClients": 1,
+      "useGarbageCollection": true
+    },
+    "steps": [
+      {
+        "waitForPendingWrites": true,
+        "expectedWaitForPendingWritesEvents": 1
+      }
+    ]
+  },
+  "Wait for pending writes waits after restart": {
+    "describeName": "Writes:",
+    "itName": "Wait for pending writes waits after restart",
+    "tags": [
+      "durable-persistence"
+    ],
+    "config": {
+      "numClients": 1,
+      "useGarbageCollection": true
+    },
+    "steps": [
+      {
+        "userSet": [
+          "collection/a",
+          {
+            "k": "a"
+          }
+        ]
+      },
+      {
+        "restart": true,
+        "expectedState": {
+          "activeLimboDocs": [
+          ],
+          "activeTargets": {
+          },
+          "enqueuedLimboDocs": [
+          ]
+        }
+      },
+      {
+        "waitForPendingWrites": true
+      },
+      {
+        "writeAck": {
+          "version": 1001
+        },
+        "expectedWaitForPendingWritesEvents": 1
       }
     ]
   },
@@ -6492,16 +6927,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -6646,16 +7081,16 @@
       },
       {
         "clientIndex": 1,
-        "userListen": [
-          4,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/doc"
-          }
-        ],
+          },
+          "targetId": 4
+        },
         "expectedSnapshotEvents": [
           {
             "added": [
@@ -6865,16 +7300,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -7111,16 +7546,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -7368,16 +7803,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -8975,16 +9410,16 @@
       },
       {
         "clientIndex": 0,
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -9187,16 +9622,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -9323,16 +9758,16 @@
         }
       },
       {
-        "userListen": [
-          4,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection"
-          }
-        ],
+          },
+          "targetId": 4
+        },
         "expectedState": {
           "activeTargets": {
             "4": {
@@ -9420,16 +9855,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -9584,16 +10019,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -9702,16 +10137,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -9866,16 +10301,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -9984,16 +10419,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10148,16 +10583,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10266,16 +10701,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10430,16 +10865,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10548,16 +10983,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10666,16 +11101,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10784,16 +11219,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10902,16 +11337,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -10985,16 +11420,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -11149,16 +11584,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -11313,16 +11748,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
@@ -11431,16 +11866,16 @@
     },
     "steps": [
       {
-        "userListen": [
-          2,
-          {
+        "userListen": {
+          "query": {
             "filters": [
             ],
             "orderBys": [
             ],
             "path": "collection/key"
-          }
-        ],
+          },
+          "targetId": 2
+        },
         "expectedState": {
           "activeTargets": {
             "2": {
